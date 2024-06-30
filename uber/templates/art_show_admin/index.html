@@ -29,7 +29,6 @@
     <th>Name</th>
     <th>Artist Type</th>
     <th>Pieces Submitted</th>
-    <th>Status</th>
     <th>General Panels</th>
     <th>General Tables</th>
     <th>Mature Panels</th>
@@ -38,6 +37,7 @@
     <th>Cost</th>
     <th>Owed</th>
     {% endif %}
+    <th>Agent Notes</th>
     <th>Admin Notes</th>
 </tr></thead>
 {% for app in applications %}
@@ -48,7 +48,6 @@
             {% elif app.delivery_method == c.AGENT %}Agenting{% endif %}</td>
         <td>{% if app.incomplete_reason or app.is_unpaid %}N/A{% else %}
         {{ app.art_show_pieces|length }} (<a href="pieces?id={{ app.id }}">View</a>){% endif %}</td>
-        <td>{{ app.status_label }}</td>
         <td>{{ app.panels }}</td>
         <td>{{ app.tables }}</td>
         <td>{{ app.panels_ad }}</td>
@@ -57,6 +56,7 @@
         <td>{{ app.total_cost|format_currency }}</td>
         <td>{{ app.amount_unpaid|format_currency }}</td>
         {% endif %}
+        <td>{{ app.agent_notes }}</td>
         <td>{{ app.admin_notes }}</td>
     </tr>
 {% endfor %}

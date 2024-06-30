@@ -190,23 +190,18 @@
 
 <div class="row g-sm-3">
   <div class="col-12 col-sm-6">
-    <label for="description" class="form-text">Description</label>
-    {% if readonly %}
-      {{ app.description }}
-    {% else %}
-      <textarea class="form-control" name="description" id="description" rows="4">{{ app.description }}</textarea>
-      {% if not admin_area %}<p class="form-text">A short description of your artwork.</p>{% endif %}
-    {% endif %}
-  </div>
-  <div class="col-12 col-sm-6">
     <label for="website" class="form-text">Website</label>
     {% if readonly %}
       {{ app.website }}
     {% else %}
       <input type="text" class="form-control" name="website" id="website" value="{{ app.website }}"/>
-      {% if not admin_area %}<p class="form-text">If you do not have a website showing your work, please enter 'N/A' and contact {{ c.ART_SHOW_EMAIL|email_only|email_to_link }} after submitting your {{ c.ART_SHOW_APP_TERM }}.</p>{% endif %}
     {% endif %}
   </div>
+  {% if not admin_area and app.is_new %}
+  <div class="col-12 col-sm-6">
+    <p class="form-text">If you do not have a website showing your work, please enter 'N/A' and contact {{ c.ART_SHOW_EMAIL|email_only|email_to_link }} after submitting your {{ c.ART_SHOW_APP_TERM }}.</p>
+  </div>
+  {% endif %}
 </div>
 
 <div class="row g-sm-3">

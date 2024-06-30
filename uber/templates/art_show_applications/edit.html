@@ -12,7 +12,7 @@
       {% include 'confirm_tabs.html' with context %}
     {% endif %}
       {% if app.status == c.APPROVED %}
-      Your {{ c.ART_SHOW_APP_TERM }} has been approved!
+      Your {{ c.ART_SHOW_APP_TERM }} has been confirmed!
         {% if not app.incomplete_reason and app.amount_unpaid %}
         <br/><br/>
           {% if c.AT_THE_CON %}
