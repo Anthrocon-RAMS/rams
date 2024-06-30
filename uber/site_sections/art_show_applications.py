@@ -47,7 +47,7 @@ class Root:
 
                 session.add(app)
                 send_email.delay(
-                    c.ART_SHOW_EMAIL,
+                    "artshow@rams.anthrocon.org",
                     c.ART_SHOW_NOTIFICATIONS_EMAIL,
                     'Art Show Application Received',
                     render('emails/art_show/reg_notification.txt',
@@ -85,11 +85,12 @@ class Root:
                 session.add(app)
                 session.commit()  # Make sure we update the DB or the email will be wrong!
                 send_email.delay(
-                    c.ART_SHOW_EMAIL,
+                    "noreply@rams.anthrocon.org",
                     app.email_to_address,
                     'Art Show Application Updated',
                     render('emails/art_show/appchange_notification.html',
                            {'app': app}, encoding=None),
+                    replyto=[c.ART_SHOW_EMAIL],
                     bcc=c.ART_SHOW_BCC_EMAIL,
                     format='html',
                     model=app.to_dict('id'))
@@ -196,11 +197,12 @@ class Root:
 
         if cherrypy.request.method == 'POST':
             send_email.delay(
-                c.ART_SHOW_EMAIL,
+                "noreply@rams.anthrocon.org",
                 [app.email_to_address, c.ART_SHOW_NOTIFICATIONS_EMAIL],
                 f'[{app.artist_codes}] {c.EVENT_NAME} Art Show: Pieces Updated',
                 render('emails/art_show/pieces_confirmation.html',
                        {'app': app}, encoding=None), 'html',
+                replyto=[c.ART_SHOW_EMAIL],
                 model=app.to_dict('id'))
             raise HTTPRedirect('..{}?id={}&message={}', params['return_to'], app.id,
                                'Confirmation email sent!')
@@ -254,12 +256,13 @@ class Root:
         if old_code.attendee:
             message = 'Agent removed.'
             send_email.delay(
-                c.ART_SHOW_EMAIL,
+                "noreply@rams.anthrocon.org",
                 [old_code.attendee.email_to_address, app.attendee.email_to_address],
                 '{} Art Show Agent Removed'.format(c.EVENT_NAME),
                 render('emails/art_show/agent_removed.html',
                        {'app': app, 'agent': old_code.attendee}, encoding=None), 'html',
                 bcc=c.ART_SHOW_BCC_EMAIL,
+                replyto=[c.ART_SHOW_EMAIL],
                 model=app.to_dict('id'))
 
         session.commit()
@@ -271,11 +274,12 @@ class Root:
                 message += f' Your new agent code is {new_code.code}.'
             else:
                 send_email.delay(
-                    c.ART_SHOW_EMAIL,
+                    "noreply@rams.anthrocon.org",
                     app.attendee.email_to_address,
                     'New Agent Code for the {} Art Show'.format(c.EVENT_NAME),
                     render('emails/art_show/agent_code.html',
                         {'app': app, 'agent_code': new_code}, encoding=None), 'html',
+                    replyto=[c.ART_SHOW_EMAIL],
                     bcc=c.ART_SHOW_BCC_EMAIL,
                     model=app.to_dict('id'))
 
