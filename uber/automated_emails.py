@@ -283,7 +283,7 @@ class ArtShowAppEmailFixture(AutomatedEmailFixture):
                                        template,
                                        lambda app: True and filter(app),
                                        ident,
-                                       sender="noreply@rams.anthrocon.org",
+                                       sender="Anthrocon Art Show <noreply@rams.anthrocon.org>",
                                        replyto=[c.ART_SHOW_EMAIL], **kwargs)
 
 
