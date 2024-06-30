@@ -87,7 +87,7 @@ class Root:
                 send_email.delay(
                     "Anthrocon Art Show <noreply@rams.anthrocon.org>",
                     app.email_to_address,
-                    'Art Show Application Updated',
+                    f'{c.EVENT_NAME} Art Show Information Updated',
                     render('emails/art_show/appchange_notification.html',
                            {'app': app}, encoding=None),
                     replyto=[c.ART_SHOW_EMAIL],
