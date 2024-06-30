@@ -85,7 +85,7 @@ class Root:
                 session.add(app)
                 session.commit()  # Make sure we update the DB or the email will be wrong!
                 send_email.delay(
-                    "noreply@rams.anthrocon.org",
+                    "Anthrocon Art Show <noreply@rams.anthrocon.org>",
                     app.email_to_address,
                     'Art Show Application Updated',
                     render('emails/art_show/appchange_notification.html',
@@ -197,7 +197,7 @@ class Root:
 
         if cherrypy.request.method == 'POST':
             send_email.delay(
-                "noreply@rams.anthrocon.org",
+                "Anthrocon Art Show <noreply@rams.anthrocon.org>",
                 [app.email_to_address, c.ART_SHOW_NOTIFICATIONS_EMAIL],
                 f'[{app.artist_codes}] {c.EVENT_NAME} Art Show: Pieces Updated',
                 render('emails/art_show/pieces_confirmation.html',
@@ -256,7 +256,7 @@ class Root:
         if old_code.attendee:
             message = 'Agent removed.'
             send_email.delay(
-                "noreply@rams.anthrocon.org",
+                "Anthrocon Art Show <noreply@rams.anthrocon.org>",
                 [old_code.attendee.email_to_address, app.attendee.email_to_address],
                 '{} Art Show Agent Removed'.format(c.EVENT_NAME),
                 render('emails/art_show/agent_removed.html',
@@ -274,7 +274,7 @@ class Root:
                 message += f' Your new agent code is {new_code.code}.'
             else:
                 send_email.delay(
-                    "noreply@rams.anthrocon.org",
+                    "Anthrocon Art Show <noreply@rams.anthrocon.org>",
                     app.attendee.email_to_address,
                     'New Agent Code for the {} Art Show'.format(c.EVENT_NAME),
                     render('emails/art_show/agent_code.html',
