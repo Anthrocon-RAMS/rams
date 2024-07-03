@@ -520,6 +520,10 @@ class Root:
             return {'error': "Please fill out the following fields: " + readable_join(missing_fields) + ".",
                     'attendee_id': attendee.id}
 
+        if 'phone_type' not in params:
+            return {'error': "You must select whether your phone number is a mobile number or a landline.",
+                    'attendee_id': attendee.id}
+
         if params['id']:
             bidder = session.art_show_bidder(params)
         else:

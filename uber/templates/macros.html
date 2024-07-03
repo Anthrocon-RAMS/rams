@@ -191,14 +191,14 @@
     <label class="form-text">
       {{ label }}
     </label>
-    <div class="mb-3">
+    <div{{ ' class="mb-3"' if not help else '' }}>
         {{ caller() }}
+      {% if help %}
+        <span class="form-text">
+          {{ help }}
+        </span>
+      {% endif %}
     </div>
-    {% if help %}
-      <p class="form-text">
-        {{ help }}
-      </p>
-    {% endif %}
   </div>
   {% else %}
   <div class="form-group {{ form_class }}">
