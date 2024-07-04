@@ -107,7 +107,7 @@
 
   {% if not app.banner_name and printable %}
   <div class="col-12 col-sm-6">
-    <div class="form-text">Banner Name</div>
+    <label class="form-text">Banner Name</label>
     <div class="mb-3">
         {{ app.artist_name or app.attendee.full_name }}
     </div>
@@ -134,8 +134,8 @@
   {{ macros.form_group(app, 'hotel_room_num', label="Room Number", is_readonly=printable, use_bs5=True) }}
 </div>
 
+{% if app.delivery_method == c.BY_MAIL %}
 <div class="row g-sm-3">
-  {% if app.delivery_method == c.BY_MAIL %}
     {% if not app.business_name and printable %}
     <div class="col-12 col-sm-6">
       <label class="form-text">Mailing Business Name</label>
@@ -146,33 +146,8 @@
     {% else %}
       {{ macros.form_group(app, 'business_name', label="Mailing Business Name", placeholder=app.attendee.full_name, is_readonly=printable, use_bs5=True) }}
     {% endif %}
-  {% endif %}
-
-  <div class="col">
-    <label class="form-text">Artist Type</label>
-    <div class="mb-3">
-      {% if printable %}
-      <div class="form-control-static">
-        {{ app.delivery_method_label }}
-      </div>
-      {% else %}
-      <select name="delivery_method" class="form-control">
-        {{ options(c.ART_SHOW_DELIVERY_OPTS, app.delivery_method) }}
-      </select>
-      {% endif %}
-    </div>
-  </div>
-  {% if not printable and app.delivery_method == c.AGENT %}
-  <div class="col">
-    <label class="form-text">Agent</label>
-    <div class="mb-3">
-      <select name="agent_id" class="form-control">
-        {{ options(all_attendees, app.agent.id) }}
-      </select>
-    </div>
-  </div>
-  {% endif %}
 </div>
+{% endif %}
 {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
   {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=printable, use_bs5=True) }}
 {% endif %}
