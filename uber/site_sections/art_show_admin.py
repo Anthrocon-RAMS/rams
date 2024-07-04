@@ -339,7 +339,7 @@ class Root:
                     if 'check_in' in params and params['check_in'] and piece.status == c.EXPECTED:
                         piece.status = c.HUNG
                     elif 'check_out' in params and params['check_out'] and piece.status == c.HUNG:
-                        piece.status = c.RETURN
+                        piece.status = c.SOLD
                     session.commit()  # We save as we go so it's less annoying if there's an error
 
         return {

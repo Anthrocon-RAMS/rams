@@ -130,6 +130,11 @@
 {% endif %}
 
 <div class="row g-sm-3">
+  {{ macros.form_group(app, 'hotel_name', label="Hotel Staying At", is_readonly=printable, use_bs5=True) }}
+  {{ macros.form_group(app, 'hotel_room_num', label="Room Number", is_readonly=printable, use_bs5=True) }}
+</div>
+
+<div class="row g-sm-3">
   {% if app.delivery_method == c.BY_MAIL %}
     {% if not app.business_name and printable %}
     <div class="col-12 col-sm-6">
@@ -141,9 +146,6 @@
     {% else %}
       {{ macros.form_group(app, 'business_name', label="Mailing Business Name", placeholder=app.attendee.full_name, is_readonly=printable, use_bs5=True) }}
     {% endif %}
-  {% endif %}
-  {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
-  {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=printable, use_bs5=True) }}
   {% endif %}
 
   <div class="col">
@@ -171,6 +173,9 @@
   </div>
   {% endif %}
 </div>
+{% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
+  {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=printable, use_bs5=True) }}
+{% endif %}
 <div class="row g-sm-3">
 {% endif %}
 {% if not app.check_payable and printable %}
