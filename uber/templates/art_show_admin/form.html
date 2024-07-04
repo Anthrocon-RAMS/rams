@@ -141,6 +141,11 @@ app, c.PAGE_PATH,
       </div>
       {% endif %}
 
+      {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
+        {% include "region_opts.html" %}
+        {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=readonly, use_bs5=True) }}
+      {% endif %}
+
       <div class="row g-sm-3">
         <div class="col-12 col-sm-6">
           <label class="form-text">Check-In Notes</label>
