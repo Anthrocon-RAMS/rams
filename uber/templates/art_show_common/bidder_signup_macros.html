@@ -50,22 +50,29 @@
   </p>
 </div>
 
-{% if attendee.cellphone or not printable %}
+{% if attendee.cellphone or attendee.email or not printable %}
 <div class="row g-sm-3">
-  {{ macros.form_group(attendee, 'cellphone', label="Phone", is_readonly=printable, use_bs5=True) }}
+  {% if attendee.email or not printable %}
+  {{ macros.form_group(attendee, 'email', label="Email Address", is_readonly=printable, use_bs5=True) }}
+  {% endif %}
+  {% if attendee.cellphone or not printable %}
+  {{ macros.form_group(attendee, 'cellphone', label="Phone #", is_readonly=printable, use_bs5=True) }}
   <div class="col">
     <label class="form-text">Phone Number Type</label>
     <div class="mb-3">
       {{ macros.button_radio_opts('phone_type', c.PHONE_TYPE_OPTS, default='' if not attendee.art_show_bidder else attendee.art_show_bidder.phone_type, is_readonly=printable) }}
     </div>
   </div>
+  {% endif %}
 </div>
 
+{% if attendee.email or not printable %}
 <div class="row g-sm-3">
   <p class="form-text">
-    {{ macros.checkbox(attendee.art_show_bidder, 'share_phone', label="It's OK to share my phone number with artists whose work I buy.", is_readonly=printable) }}
+    {{ macros.checkbox(attendee.art_show_bidder, 'share_phone', label="It's OK to share my email address with artists whose work I buy.", is_readonly=printable) }}
   </p>
 </div>
+{% endif %}
 {% endif %}
 
 <div class="row g-sm-3">
