@@ -204,6 +204,8 @@ class Tracking(MagModel):
                                                                                     "last_send_time",
                                                                                     "unapproved_count")):
                 return
+            if not diff.keys().isdisjoint(("last_updated")):
+                return
             elif not data:
                 return
         else:
