@@ -539,12 +539,15 @@ class Root:
             ArtShowBidder.id != bidder.id,
             ArtShowBidder.bidder_num.ilike(f"%{ArtShowBidder.strip_bidder_num(params.get('bidder_num'))}%")).first()
         if bidder_num_dupe:
-            session.rollback()
-            return {
-                'error': f"The bidder number {bidder_num_dupe.bidder_num[2:]} already belongs to bidder"
-                            f" {bidder_num_dupe.bidder_num}.",
-                'attendee_id': attendee.id
-            }
+            # Final check!
+            possible_dupe = ArtShowBidder.strip_bidder_num(bidder_num_dupe.bidder_num)
+            if possible_dupe == ArtShowBidder.strip_bidder_num(params.get('bidder_num')):
+                session.rollback()
+                return {
+                    'error': f"The bidder number {bidder_num_dupe.bidder_num[2:]} already belongs to bidder"
+                                f" {bidder_num_dupe.bidder_num}.",
+                    'attendee_id': attendee.id
+                }
 
         if params['complete']:
             bidder.signed_up = localized_now()
