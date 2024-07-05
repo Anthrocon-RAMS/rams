@@ -12,7 +12,7 @@ from io import BytesIO
 
 from uber.config import c
 from uber.custom_tags import format_currency, readable_join
-from uber.decorators import ajax, all_renderable, credit_card, public
+from uber.decorators import ajax, ajax_gettable, all_renderable, credit_card, public
 from uber.errors import HTTPRedirect
 from uber.models import AdminAccount, ArtShowApplication, ArtShowBidder, ArtShowPayment, ArtShowPiece, ArtShowReceipt, \
                         Attendee, Tracking, ArbitraryCharge, ReceiptItem, ReceiptTransaction, WorkstationAssignment
@@ -492,7 +492,8 @@ class Root:
             'order':          Order(order),
         }
 
-    @ajax
+    @ajax_gettable
+    @public
     def sign_up_bidder(self, session, **params):
         try:
             attendee = session.attendee(params['attendee_id'])
