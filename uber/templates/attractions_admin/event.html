@@ -212,7 +212,10 @@
 </form>
 
 {%- if event.signups -%}
-  <h2 class="attendees-title">Attendees Signed Up</h2>
+  <div class="d-flex align-items-center gap-3 mt-3">
+    <h2>Attendees Signed Up</h2>
+    <a href="signups_export?id={{ event.id }}"><i class="fa fa-download"></i> Download CSV</a>
+  </div>
   <table id="attendees-table" class="table table-hover table-responsive datatable"
       data-paging="false"
       data-info="false">
@@ -232,14 +235,14 @@
           <td>#{{ signup.attendee.badge_num }}</td>
           <td>{{ signup.signup_time|datetime_local('%A, %b %-e at %-I:%M%p') }}</td>
           <td class="checkin {% if signup.is_checked_in %} checked-in{% endif %}" data-order="{{ signup.checkin_time }}">
-            <button class="btn btn-warning btn-xs checked-in-visible" data-signup-id="{{ signup.id }}">
+            <button class="btn btn-warning btn-sm checked-in-visible" data-signup-id="{{ signup.id }}">
               <i class="fa fa-check"></i>
               Undo
             </button>
             <span class="checkin_time checked-in-visible">
               {{ signup.checkin_time_local|datetime('%A, %b %-e at %-I:%M%p') }}
             </span>
-            <button class="btn btn-success btn-xs checked-in-hidden" data-signup-id="{{ signup.id }}">
+            <button class="btn btn-success btn-sm checked-in-hidden" data-signup-id="{{ signup.id }}">
               <i class="fa fa-check"></i>
               Check In Now
             </button>
@@ -248,7 +251,7 @@
             <span {% if signup.is_checked_in -%}
                 title="You cannot cancel a signup that has already checked in" {% endif -%}
                 style="display: inline-block;">
-              <button class="btn btn-xs btn-danger"
+              <button class="btn btn-sm btn-danger"
                   {%- if signup.is_checked_in %} disabled="disabled"{% endif %}
                   data-signup-id="{{ signup.id }}"
                   data-attendee-name="{{ signup.attendee.full_name }}">

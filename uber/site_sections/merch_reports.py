@@ -1,6 +1,7 @@
 from collections import defaultdict, OrderedDict
 from datetime import datetime
 from pytz import UTC
+from sqlalchemy import or_
 
 from uber.config import c
 from uber.custom_tags import format_currency, datetime_local_filter
@@ -30,17 +31,29 @@ class Root:
             - attendees (who can pre-order them)
         """
         counts = defaultdict(lambda: defaultdict(int))
-        labels = ['size unknown'] + [label for val, label in c.SHIRT_OPTS][1:]
-        staff_labels = ['size unknown'] + [label for val, label in c.STAFF_SHIRT_OPTS][1:]
+        labels = ['size unknown', 'opted out'] + [label for val, label in c.SHIRT_OPTS][1:]
+        staff_labels = ['size unknown', 'opted out'] + [label for val, label in c.STAFF_SHIRT_OPTS][1:]
 
         for attendee in session.all_attendees():
-            shirt_label = attendee.shirt_label or 'size unknown'
-            if c.STAFF_SHIRT_OPTS != c.SHIRT_OPTS:
-                staff_shirt_label = attendee.staff_shirt_label or 'size unknown'
+            if attendee.shirt_opt_out == c.ALL_OPT_OUT:
+                counts['staff']['opted out'] += 1
+                counts['event']['opted out'] += 1
             else:
-                staff_shirt_label = attendee.shirt_label or 'size unknown'
-            counts['staff'][label(staff_shirt_label)] += attendee.num_staff_shirts_owed
-            counts['event'][label(shirt_label)] += attendee.num_event_shirts_owed
+                shirt_label = attendee.shirt_label or 'size unknown'
+                if c.STAFF_SHIRT_OPTS != c.SHIRT_OPTS:
+                    staff_shirt_label = attendee.staff_shirt_label or 'size unknown'
+                else:
+                    staff_shirt_label = attendee.shirt_label or 'size unknown'
+
+                if attendee.shirt_opt_out == c.STAFF_OPT_OUT:
+                    counts['staff']['opted out'] += 1
+                else:
+                    counts['staff'][label(staff_shirt_label)] += attendee.num_staff_shirts_owed
+
+                if attendee.shirt_opt_out == c.EVENT_OPT_OUT:
+                    counts['event']['opted out'] += 1
+                else:
+                    counts['event'][label(shirt_label)] += attendee.num_event_shirts_owed
 
         categories = []
         if c.SHIRTS_PER_STAFFER > 0:
@@ -102,7 +115,8 @@ class Root:
 
     def owed_merch(self, session):
         return {
-            'attendees': session.valid_attendees().filter(Attendee.amount_extra > 0,
+            'attendees': session.valid_attendees().filter(or_(Attendee.amount_extra > 0,
+                                                              Attendee.badge_type.in_(c.BADGE_TYPE_PRICES)),
                                                           Attendee.got_merch == False)  # noqa: E712
         }
 
@@ -120,7 +134,8 @@ class Root:
             'Checked In',
             'Admin Notes',
         ])
-        attendees = session.valid_attendees().filter(Attendee.amount_extra > 0,
+        attendees = session.valid_attendees().filter(or_(Attendee.amount_extra > 0,
+                                                         Attendee.badge_type.in_(c.BADGE_TYPE_PRICES)),
                                                      Attendee.got_merch == False)  # noqa: E712
         for attendee in attendees:
             out.writerow([

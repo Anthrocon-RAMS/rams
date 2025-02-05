@@ -1,4 +1,5 @@
 import ast
+import csv
 import hashlib
 import inspect
 import math
@@ -343,10 +344,30 @@ class Config(_Overridable):
         if section == 'group_admin' and any(x in access for x in ['dealer_admin', 'guest_admin',
                                                                   'band_admin', 'mivs_admin']):
             return True
+        
+    def update_name_problems(self):
+        c.PROBLEM_NAMES = {}
+        file_loc = os.path.join(c.UPLOADED_FILES_DIR, 'problem_names.csv')
+        try:
+            result = csv.DictReader(open(file_loc))
+        except FileNotFoundError:
+            return "File not found!"
+        
+        for row in result:
+            c.PROBLEM_NAMES[row['text']] = [row[f"canonical_form_{x}"] for x in range(1, 4)
+                                            if row[f"canonical_form_{x}"]]
+
     
     @property
     def CHERRYPY(self):
         return _config['cherrypy']
+    
+    @property
+    def RECEIPT_CATEGORY_OPTS(self):
+        opts = []
+        for key, dict in c.RECEIPT_DEPT_CATEGORIES.items():
+            opts.extend([(key, val) for key, val in dict.items()])
+        return opts
 
     @property
     def DEALER_REG_OPEN(self):
@@ -385,10 +406,22 @@ class Config(_Overridable):
     @property
     def ART_SHOW_HAS_FEES(self):
         return c.COST_PER_PANEL or c.COST_PER_TABLE or c.ART_MAILING_FEE
+    
+    @property
+    def MARKETPLACE_CANCEL_DEADLINE(self):
+        return min(self.EPOCH, self.PREREG_TAKEDOWN) if self.PREREG_TAKEDOWN else self.EPOCH
 
     @property
     def SELF_SERVICE_REFUNDS_OPEN(self):
         return self.BEFORE_REFUND_CUTOFF and (self.AFTER_REFUND_START or not self.REFUND_START)
+    
+    @property
+    def HOTEL_LOTTERY_OPEN(self):
+        return c.AFTER_HOTEL_LOTTERY_FORM_START and c.BEFORE_HOTEL_LOTTERY_FORM_DEADLINE
+    
+    @property
+    def STAFF_HOTEL_LOTTERY_OPEN(self):
+        return c.AFTER_HOTEL_LOTTERY_STAFF_START and c.BEFORE_HOTEL_LOTTERY_STAFF_DEADLINE
 
     @request_cached_property
     @dynamic
@@ -508,8 +541,9 @@ class Config(_Overridable):
         if c.AT_THE_CON and self.ONE_DAYS_ENABLED and self.ONE_DAY_BADGE_AVAILABLE:
             badge_types.append({
                 'name': 'Single Day',
-                'desc': 'Can be upgrated to a weekend badge later.',
-                'value': c.ONE_DAY_BADGE
+                'desc': 'Can be upgraded to a weekend badge later.',
+                'value': c.ONE_DAY_BADGE,
+                'price': c.ONEDAY_BADGE_PRICE
             })
         badge_types.append({
             'name': 'Attendee',
@@ -630,7 +664,7 @@ class Config(_Overridable):
                 'desc': Markup(f"Attendees 12 and younger at the start of {c.EVENT_NAME} must be accompanied "
                                "by an adult with a valid Attendee badge. <br/><br/>"
                                "<span class='form-text text-danger'>Price is always half that of the Single "
-                               "Attendee badge price.</span>"),
+                               "Attendee badge price. Badges for attendees 5 and younger are free.</span>"),
                 'value': c.CHILD_BADGE,
                 'price': str(c.BADGE_PRICE - math.ceil(c.BADGE_PRICE / 2)),
             })
@@ -653,7 +687,7 @@ class Config(_Overridable):
 
     @property
     def AVAILABLE_MERCH_TIERS(self):
-        return [price for price, name in self.DONATION_TIERS.items() if price not in self.SOLD_OUT_MERCH_TIERS]
+        return sorted([price for price, name in self.DONATION_TIERS.items() if price not in self.SOLD_OUT_MERCH_TIERS])
 
     @property
     def FORMATTED_MERCH_TIERS(self):
@@ -839,6 +873,22 @@ class Config(_Overridable):
     @property
     def PAGE(self):
         return cherrypy.request.path_info.split('/')[-1]
+    
+    @property
+    def INDEXABLE_PAGE_PATHS(self):
+        """
+        Even if we ban crawlers via robots.txt, if anyone publishes a link to a protected
+        page it will end up on Bing, private UUID and all. Instead we want to ban indexing
+        via the meta tag for everything except these pages.
+        """
+        index_pages = ['/landing/', '/landing/index', '/pregistration/form', '/accounts/login']
+        if c.SHIFTS_CREATED:
+            index_pages.append('/staffing/login')
+        if c.TRANSFERABLE_BADGE_TYPES:
+            index_pages.append('/preregistration/start_badge_transfer')
+        if not c.ATTENDEE_ACCOUNTS_ENABLED:
+            index_pages.append('/preregistration/check_if_preregistered')
+        return index_pages
 
     @request_cached_property
     @dynamic
@@ -857,12 +907,46 @@ class Config(_Overridable):
         try:
             from uber.models import Session, AdminAccount, Attendee
             with Session() as session:
-                attrs = Attendee.to_dict_default_attrs + ['admin_account', 'assigned_depts']
+                attrs = Attendee.to_dict_default_attrs + ['admin_account', 'assigned_depts', 'logged_in_name']
                 admin_account = session.query(AdminAccount) \
                     .filter_by(id=cherrypy.session.get('account_id')) \
                     .options(subqueryload(AdminAccount.attendee).subqueryload(Attendee.assigned_depts)).one()
 
                 return admin_account.attendee.to_dict(attrs)
+        except Exception:
+            return {}
+
+    @request_cached_property
+    @dynamic
+    def CURRENT_VOLUNTEER(self):
+        try:
+            from uber.models import Session, Attendee
+            with Session() as session:
+                attrs = Attendee.to_dict_default_attrs + ['logged_in_name']
+                attendee = session.logged_in_volunteer()
+                return attendee.to_dict(attrs)
+        except Exception:
+            return {}
+        
+    @request_cached_property
+    @dynamic
+    def CURRENT_KIOSK_SUPERVISOR(self):
+        try:
+            from uber.models import Session
+            with Session() as session:
+                admin_account = session.current_supervisor_admin()
+                return admin_account.attendee.to_dict()
+        except Exception:
+            return {}
+    
+    @request_cached_property
+    @dynamic
+    def CURRENT_KIOSK_OPERATOR(self):
+        try:
+            from uber.models import Session
+            with Session() as session:
+                attendee = session.kiosk_operator_attendee()
+                return attendee.to_dict()
         except Exception:
             return {}
 
@@ -1156,6 +1240,9 @@ class AWSSecretFetcher:
     """
 
     def __init__(self):
+        self.start_session()
+
+    def start_session(self):
         import boto3
 
         aws_session = boto3.session.Session(
@@ -1168,9 +1255,14 @@ class AWSSecretFetcher:
             region_name=c.AWS_REGION
         )
 
+        self.session_expiration = datetime.now() + timedelta(hours=6)
+
     def get_secret(self, secret_name):
         import json
         from botocore.exceptions import ClientError
+
+        if not self.client:
+            self.start_session()
 
         try:
             get_secret_value_response = self.client.get_secret_value(
@@ -1217,9 +1309,9 @@ class AWSSecretFetcher:
 
         signnow_secret = self.get_secret(c.AWS_SIGNNOW_SECRET_NAME)
         if signnow_secret:
-            c.SIGNNOW_ACCESS_TOKEN = signnow_secret.get('ACCESS_TOKEN', '') or c.SIGNNOW_ACCESS_TOKEN
             c.SIGNNOW_CLIENT_ID = signnow_secret.get('CLIENT_ID', '') or c.SIGNNOW_CLIENT_ID
             c.SIGNNOW_CLIENT_SECRET = signnow_secret.get('CLIENT_SECRET', '') or c.SIGNNOW_CLIENT_SECRET
+            return signnow_secret
 
 def get_config_files(plugin_name, module_dir):
     config_files_str = os.environ.get(f"{plugin_name.upper()}_CONFIG_FILES", "")
@@ -1327,10 +1419,7 @@ for conf, val in _config['secret'].items():
         setattr(c, conf.upper(), val)
 
 if c.AWS_SECRET_SERVICE_NAME:
-    aws_secrets_client = AWSSecretFetcher()
-    aws_secrets_client.get_all_secrets()
-else:
-    aws_secrets_client = None
+    AWSSecretFetcher().get_all_secrets()
 
 signnow_python_sdk.Config(client_id=c.SIGNNOW_CLIENT_ID,
                           client_secret=c.SIGNNOW_CLIENT_SECRET,
@@ -1437,6 +1526,11 @@ for _name, _section in _config['age_groups'].items():
     _val = getattr(c, _name.upper())
     c.AGE_GROUP_CONFIGS[_val] = dict(_section.dict(), val=_val)
 
+c.RECEIPT_DEPT_CATEGORIES = {}
+for _name, _val in _config['enums']['receipt_item_dept'].items():
+    _val = getattr(c, _name.upper())
+    c.RECEIPT_DEPT_CATEGORIES[_val] = {getattr(c, key.upper()): val for key, val in _config['enums'][_name].items()}
+
 c.TABLE_PRICES = defaultdict(lambda: _config['table_prices']['default_price'],
                              {int(k): v for k, v in _config['table_prices'].items() if k != 'default_price'})
 
@@ -1447,7 +1541,6 @@ c.DOOR_PAYMENT_METHODS = {key: val for key, val in c.DOOR_PAYMENT_METHODS.items(
 c.TERMINAL_ID_TABLE = {k.lower().replace('-', ''): v for k, v in _config['secret']['terminal_ids'].items()}
 
 c.SHIFTLESS_DEPTS = {getattr(c, dept.upper()) for dept in c.SHIFTLESS_DEPTS}
-c.DISCOUNTABLE_BADGE_TYPES = [getattr(c, badge_type.upper()) for badge_type in c.DISCOUNTABLE_BADGE_TYPES]
 c.PREASSIGNED_BADGE_TYPES = [getattr(c, badge_type.upper()) for badge_type in c.PREASSIGNED_BADGE_TYPES]
 c.TRANSFERABLE_BADGE_TYPES = [getattr(c, badge_type.upper()) for badge_type in c.TRANSFERABLE_BADGE_TYPES]
 
@@ -1533,8 +1626,6 @@ c.PREREG_SHIRT_OPTS = sorted(c.PREREG_SHIRT_OPTS if c.PREREG_SHIRT_OPTS else c.S
 c.PREREG_SHIRTS = {key: val for key, val in c.PREREG_SHIRT_OPTS}
 c.STAFF_SHIRT_OPTS = sorted(c.STAFF_SHIRT_OPTS if len(c.STAFF_SHIRT_OPTS) > 1 else c.SHIRT_OPTS)
 c.SHIRT_OPTS = sorted(c.SHIRT_OPTS)
-c.MERCH_SHIRT_OPTS = [(c.SIZE_UNKNOWN, 'select a size')] + sorted(list(c.SHIRT_OPTS))
-c.MERCH_STAFF_SHIRT_OPTS = [(c.SIZE_UNKNOWN, 'select a size')] + sorted(list(c.STAFF_SHIRT_OPTS))
 shirt_label_lookup = {val: key for key, val in c.SHIRT_OPTS}
 c.SHIRT_SIZE_STOCKS = {shirt_label_lookup[val]: key for key, val in c.SHIRT_STOCK_OPTS}
 
@@ -1560,10 +1651,22 @@ c.WRISTBAND_COLORS = defaultdict(lambda: c.WRISTBAND_COLORS[c.DEFAULT_WRISTBAND]
 
 c.SAME_NUMBER_REPEATED = r'^(\d)\1+$'
 
+c.HOTEL_LOTTERY = _config.get('hotel_lottery', {})
+for key in ["hotels", "room_types", "suite_room_types", "priorities"]:
+    opts = []
+    for name, item in c.HOTEL_LOTTERY.get(key, {}).items():
+        if isinstance(item, dict):
+            item.__hash__ = lambda x: hash(x.name + x.description)
+            base_key = f"HOTEL_LOTTERY_{name.upper()}"
+            dict_key = int(sha512(base_key.encode()).hexdigest()[:7], 16)
+            setattr(c, base_key, dict_key)
+            opts.append((dict_key, item))
+    setattr(c, f"HOTEL_LOTTERY_{key.upper()}_OPTS", opts)
+
 # Allows 0-9, a-z, A-Z, and a handful of punctuation characters
 c.VALID_BADGE_PRINTED_CHARS = r'[a-zA-Z0-9!"#$%&\'()*+,\-\./:;<=>?@\[\\\]^_`\{|\}~ "]'
 c.EVENT_QR_ID = c.EVENT_QR_ID or c.EVENT_NAME_AND_YEAR.replace(' ', '_').lower()
-
+c.update_name_problems()
 
 try:
     _items = sorted([int(step), url] for step, url in _config['volunteer_checklist'].items() if url)
@@ -1592,15 +1695,15 @@ if not c.ALLOW_SHARED_TABLES:
 dealer_status_label_lookup = {val: key for key, val in c.DEALER_STATUS_OPTS}
 c.DEALER_EDITABLE_STATUSES = [dealer_status_label_lookup[name] for name in c.DEALER_EDITABLE_STATUS_LIST]
 c.DEALER_CANCELLABLE_STATUSES = [dealer_status_label_lookup[name] for name in c.DEALER_CANCELLABLE_STATUS_LIST]
+c.DEALER_ACCEPTED_STATUSES = [c.APPROVED, c.SHARED] if c.ALLOW_SHARED_TABLES else [c.APPROVED]
 
 
 # A list of models that have properties defined for exporting for Guidebook
 c.GUIDEBOOK_MODELS = [
-    ('GuestGroup_guest', 'Guests'),
-    ('GuestGroup_band', 'Bands'),
+    ('GuestGroup_guest', 'Guest'),
+    ('GuestGroup_band', 'Band'),
     ('MITSGame', 'MITS'),
     ('IndieGame', 'MIVS'),
-    ('Event_panels', 'Panels'),
     ('Group_dealer', 'Marketplace'),
 ]
 
@@ -1612,9 +1715,8 @@ c.GUIDEBOOK_PROPERTIES = [
     ('guidebook_subtitle', 'Sub-Title (i.e. Location, Table/Booth, or Title/Sponsorship Level)'),
     ('guidebook_desc', 'Description (Optional)'),
     ('guidebook_location', 'Location/Room'),
-    ('guidebook_image', 'Image (Optional)'),
+    ('guidebook_header', 'Image (Optional)'),
     ('guidebook_thumbnail', 'Thumbnail (Optional)'),
-    ('guidebook_track', 'Schedule Track (Optional)'),
 ]
 
 
@@ -1767,19 +1869,20 @@ c.ROCK_ISLAND_GROUPS = [getattr(c, group.upper()) for group in c.ROCK_ISLAND_GRO
 # A list of checklist items for display on the guest group admin page
 c.GUEST_CHECKLIST_ITEMS = [
     {'name': 'bio', 'header': 'Announcement Info Provided'},
+    {'name': 'performer_badges', 'header': 'Performer Badges'},
     {'name': 'panel', 'header': 'Panel'},
-    {'name': 'mc', 'header': 'MC'},
-    {'name': 'info', 'header': 'Agreement Completed'},
-    {'name': 'taxes', 'header': 'W9 Uploaded', 'is_link': True},
-    {'name': 'merch', 'header': 'Merch'},
-    {'name': 'charity', 'header': 'Charity'},
-    {'name': 'badges', 'header': 'Badges Claimed'},
-    {'name': 'stage_plot', 'header': 'Stage Plans', 'is_link': True},
     {'name': 'autograph'},
+    {'name': 'info', 'header': 'Agreement Completed'},
+    {'name': 'merch', 'header': 'Merch'},
     {'name': 'interview'},
-    {'name': 'travel_plans'},
+    {'name': 'mc', 'header': 'MC'},
+    {'name': 'stage_plot', 'header': 'Stage Plans', 'is_link': True},
     {'name': 'rehearsal'},
+    {'name': 'taxes', 'header': 'W9 Uploaded', 'is_link': True},
+    {'name': 'badges', 'header': 'Badges Claimed'},
     {'name': 'hospitality'},
+    {'name': 'travel_plans'},
+    {'name': 'charity', 'header': 'Charity'},
 ]
 
 # Generate the possible template prefixes per step
@@ -1808,33 +1911,3 @@ if c.SAML_SP_SETTINGS["privateKey"]:
         c.SAML_SETTINGS["debug"] = True
     else:
         c.SAML_SETTINGS["strict"] = True
-
-logging.config.dictConfig({
-    'version': 1,
-    'root': {
-        'handlers': ['default'],
-        'level': "INFO",
-        'propagate': False
-    },
-    'loggers': {
-        name: {
-            'handlers': ['default'],
-            'level': level,
-            'propagate': False
-        }
-        for name, level in _config['loggers'].items() if name != 'root'
-    },
-    'handlers': {
-        'default': {
-            'level': 'INFO',
-            'formatter': 'standard',
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stdout'
-        }
-    },
-    'formatters': {
-        'standard': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-        }
-    }
-})

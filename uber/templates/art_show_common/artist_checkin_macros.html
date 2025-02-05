@@ -4,7 +4,7 @@
 {% set datatable_page_view = -1 %}
 {% set printable = not admin_area if not printable else printable %}
 <div class="modal fade" id="app_{{ app.id }}" role="dialog" tabindex="-1">
-  <div class="modal-dialog modal-lg" style="width:75%" role="document">
+  <div class="modal-dialog modal-xl" style="width:75%" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="btn-close visually-hidden" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -18,6 +18,9 @@
         </div>
         <div class="modal-footer">
           {% set print_invoice = checkout and app.total_sales %}
+          {% if not app.checked_in %}
+          <button type="submit" class="btn btn-info save_app" name="hanging" value="1">Artist Hanging</button>
+          {% endif %}
           <button type="submit" class="btn btn-primary save_app print">
             Save & Print Form
           </button>
@@ -146,6 +149,35 @@
     {% else %}
       {{ macros.form_group(app, 'business_name', label="Mailing Business Name", placeholder=app.attendee.full_name, is_readonly=printable, use_bs5=True) }}
     {% endif %}
+  {% endif %}
+  {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
+  {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=printable, use_bs5=True) }}
+  {% endif %}
+
+  <div class="col">
+    <label class="form-text">Artist Type</label>
+    <div class="mb-3">
+      {% if printable %}
+      <div class="form-control-static">
+        {{ app.delivery_method_label }}
+      </div>
+      {% else %}
+      <select name="delivery_method" class="form-control">
+        {{ options(c.ART_SHOW_DELIVERY_OPTS, app.delivery_method) }}
+      </select>
+      {% endif %}
+    </div>
+  </div>
+  {% if not printable and app.delivery_method == c.AGENT %}
+  <div class="col">
+    <label class="form-text">Agent</label>
+    <div class="mb-3">
+      <select name="agent_id" class="form-control">
+        {{ options(all_attendees, app.single_agent.id) }}
+      </select>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endif %}
 {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
@@ -197,7 +229,7 @@
     <tbody>
     {% for piece in app.art_show_pieces|sort(attribute='piece_id')|sort(attribute='gallery_label') %}
     <tr class="piece-row" data-piece_id="{{ piece.piece_id }}">
-      <td data-order="{{ piece.piece_id|int }}"> {{ piece.artist_and_piece_id }} <input type="hidden" name="piece_ids{{ app.id }}" value="{{ piece.id }}" /> </td>
+      <td data-order="{{ piece.piece_id }}"> {{ piece.artist_and_piece_id }} <input type="hidden" name="piece_ids{{ app.id }}" value="{{ piece.id }}" /> </td>
       <td data-order="{{ piece.status_label }}">
         {% if printable %}{{ piece.status_label }} {% else %}
         <select name="status{{ piece.id }}" class="form-select">
@@ -217,7 +249,7 @@
     </tbody>
   </table>
 </div>
-{% if not printable and not app.checked_in %}<em>NOTE: All "Expected" pieces will become "Hung" upon clicking "Save & Check-In"</em>
+{% if not printable and not app.checked_in %}<em>NOTE: All "Expected" and "Hanging" pieces will become "Hung" upon clicking "Save & Check-In"</em>
 {% elif not printable and not app.checked_out %}<em>NOTE: All "Hung" pieces will become "Return to Artist" upon clicking "Save & Check-Out"</em>{% endif %}
   {% if printable and not checkout %}
 <span class="text-center pagebreak">
@@ -245,7 +277,7 @@
   <div class="col-12 col-sm-6">
     <label class="form-text">Agent Name</label>
     <div class="mb-3 mt-3">
-        {{ app.agent.legal_first_name }} {{ app.agent.legal_last_name }}
+        {{ app.single_agent.legal_first_name }} {{ app.single_agent.legal_last_name }}
     </div>
   </div>
 

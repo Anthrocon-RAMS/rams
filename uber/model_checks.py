@@ -19,16 +19,17 @@ from urllib.request import urlopen
 import cherrypy
 import phonenumbers
 from pockets.autolog import log
+from pockets import sluggify
 from sqlalchemy import and_, func, or_
 
 from uber.badge_funcs import get_real_badge_type
 from uber.config import c
-from uber.custom_tags import format_currency
+from uber.custom_tags import format_currency, full_date_local
 from uber.decorators import prereg_validation, validation
 from uber.models import (AccessGroup, AdminAccount, ApiToken, Attendee, ArtShowApplication, ArtShowPiece,
                          AttendeeTournament, Attraction, AttractionFeature, Department, DeptRole, Event,
                          GuestDetailedTravelPlan, IndieDeveloper, IndieGame, IndieGameCode, IndieJudge, IndieStudio,
-                         Job, MarketplaceApplication, MITSApplicant, MITSDocument, MITSGame, MITSPicture, MITSTeam,
+                         Job, ArtistMarketplaceApplication, MITSApplicant, MITSDocument, MITSGame, MITSPicture, MITSTeam,
                          PanelApplicant, PanelApplication, PromoCode, PromoCodeGroup, Sale, Session, WatchList)
 from uber.utils import localized_now, valid_email, get_age_from_birthday
 from uber.payments import PreregCart
@@ -153,7 +154,7 @@ def include_other_details(entry):
 
 @validation.WatchList
 def not_active_after_expiration(entry):
-    if entry.active and localized_now().date() > entry.expiration:
+    if entry.active and entry.expiration and localized_now().date() > entry.expiration:
         return ('expiration', 'An entry cannot be active with an expiration date in the past.')
 
 
@@ -306,16 +307,36 @@ def attendee_tournament_cellphone(app):
         return 'You did not enter a valid cellphone number'
 
 
-# =============================
-# marketplace
-# =============================
-MarketplaceApplication.required = [('description', 'Description'), ('categories', 'Categories')]
+@validation.LotteryApplication
+def room_meets_night_requirements(app):
+    if app.any_dates_different and (app.entry_type == c.ROOM_ENTRY or 
+            app.entry_type == c.SUITE_ENTRY and not app.room_opt_out):
+        latest_checkin, earliest_checkout = app.shortest_check_in_out_dates
+        nights = app.build_nights_map(latest_checkin, earliest_checkout)
+        if not nights:
+            # Suppress this error since other validations will tell them their dates are bad
+            return
+        if len(nights) > 2:
+            for night in nights:
+                if 'Friday' in night or 'Saturday' in night:
+                    return
+        return ('', "Standard rooms require a two-night minimum with at least one night on Friday or Saturday.")
 
 
-@validation.MarketplaceApplication
-def marketplace_other_category(app):
-    if app.categories and c.OTHER in app.categories_ints and not app.categories_text:
-        return "Please describe what 'other' things you are planning to sell."
+@validation.LotteryApplication
+def suite_meets_night_requirements(app):
+    if app.any_dates_different and app.entry_type == c.SUITE_ENTRY:
+        latest_checkin, earliest_checkout = app.shortest_check_in_out_dates
+        nights = app.build_nights_map(latest_checkin, earliest_checkout)
+        night_counter = 0
+        if len(nights) > 3:
+            for night in nights:
+                if 'Friday' in night or 'Saturday' in night:
+                    night_counter += 1
+                if night_counter == 2:
+                    return
+        return ('', "Suites require a three-night minimum with both Friday night and Saturday night.")
+
 
 # =============================
 # mivs
@@ -369,22 +390,36 @@ IndieGameCode.required = [
     ('code', 'Game Code')
 ]
 
+
 IndieJudge.required = [
-    ('genres', 'Genres')
+    ('platforms', 'Platforms'),
+    ('genres', 'Genres'),
 ]
+
+
+@validation.IndieJudge
+def must_have_pc(judge):
+    if c.PC not in judge.platforms_ints and c.PCGAMEPAD not in judge.platforms_ints:
+        return 'You must have a PC to judge for MIVS.'
+
+
+@validation.IndieJudge
+def vr_text(judge):
+    if c.VR in judge.platforms_ints and not judge.vr_text:
+        return 'Please tell us what VR/AR platforms you own.'
 
 
 @validation.IndieStudio
 def mivs_new_studio_deadline(studio):
     if studio.is_new and not c.CAN_SUBMIT_MIVS:
-        return 'Sorry, but the deadline has already passed, so no new studios may be registered'
+        return 'Sorry, but the deadline has already passed, so no new studios may be registered.'
 
 
 @validation.IndieStudio
 def mivs_valid_url(studio):
     if studio.website and _is_invalid_url(studio.website_href):
         return 'We cannot contact that website; please enter a valid url ' \
-            'or leave the website field blank until your website goes online'
+            'or leave the website field blank until your website goes online.'
 
 
 @validation.IndieStudio
@@ -450,12 +485,6 @@ def mivs_video_link(game):
 
 
 @validation.IndieGame
-def mivs_submitted(game):
-    if (game.submitted and not game.status == c.ACCEPTED) and not c.HAS_MIVS_ADMIN_ACCESS:
-        return 'You cannot edit a game after it has been submitted'
-
-
-@validation.IndieGame
 def mivs_show_info_required_fields(game):
     if game.confirmed:
         if len(game.brief_description) > 80:
@@ -476,7 +505,7 @@ def mivs_description(image):
 
 @validation.IndieGameImage
 def mivs_valid_type(screenshot):
-    if screenshot.extension not in c.MIVS_ALLOWED_SCREENSHOT_TYPES:
+    if screenshot.extension not in c.GUIDEBOOK_ALLOWED_IMAGE_TYPES:
         return 'Our server did not recognize your upload as a valid image'
 
 
@@ -488,6 +517,7 @@ MITSTeam.required = [
     ('name', 'Production Team Name')
 ]
 
+
 MITSApplicant.required = [
     ('first_name', 'First Name'),
     ('last_name', 'Last Name'),
@@ -495,14 +525,12 @@ MITSApplicant.required = [
     ('cellphone', 'Cellphone Number')
 ]
 
+
 MITSGame.required = [
     ('name', 'Name'),
     ('description', 'Description')
 ]
 
-MITSPicture.required = [
-    ('description', 'Description')
-]
 
 MITSDocument.required = [
     ('description', 'Description')
@@ -533,8 +561,8 @@ def address_required_for_sellers(team):
 def min_num_days_hours(team):
     if team.days_available is not None and team.days_available < 3:
         return 'You must be available at least 3 days to present at MITS.'
-    if team.hours_available is not None and team.hours_available < 4:
-        return 'You must be able to show at least 4 hours per day to present at MITS.'
+    if team.hours_available is not None and team.hours_available < 8:
+        return 'You must be able to show at least 8 hours per day to present at MITS.'
 
 
 @validation.MITSTeam
@@ -627,12 +655,6 @@ def panel_other(app):
 
 
 @validation.PanelApplication
-def app_deadline(app):
-    if localized_now() > c.PANELS_DEADLINE and not c.HAS_PANELS_ADMIN_ACCESS and not app.poc_id:
-        return 'We are now past the deadline and are no longer accepting panel applications'
-
-
-@validation.PanelApplication
 def specify_other_time(app):
     if app.length == c.OTHER and not app.length_text:
         return 'Please specify how long your panel will be.'
@@ -642,6 +664,19 @@ def specify_other_time(app):
 def specify_nonstandard_time(app):
     if app.length != c.SIXTY_MIN and not app.length_reason and not app.poc_id:
         return 'Please explain why your panel needs to be longer than sixty minutes.'
+
+
+@validation.PanelApplication
+def select_livestream_opt(app):
+    if not app.livestream:
+        return 'Please select your preference for recording/livestreaming.' \
+            if len(c.LIVESTREAM_OPTS) > 2 else 'Please tell us if we can livestream your panel.'
+    
+
+@validation.PanelApplication
+def select_record_opt(app):
+    if not app.record and len(c.LIVESTREAM_OPTS) <= 2:
+        return 'Please tell us if we can record your panel.'
 
 
 @validation.PanelApplication
@@ -679,10 +714,29 @@ Attraction.required = [
     ('description', 'Description')
 ]
 
+@validation.Attraction
+def slug_not_existing(attraction):
+    with Session() as session:
+        slug = sluggify(attraction.name)
+        if session.query(Attraction).filter(Attraction.id != attraction.id,
+                                            Attraction.slug == slug).first():
+            return f"Another attraction has an identical URL to this one ({slug}). \
+                Please make sure this attraction's name is different from others, not including punctuation."
+
 AttractionFeature.required = [
     ('name', 'Name'),
     ('description', 'Description')
 ]
+
+
+@validation.AttractionFeature
+def slug_not_existing(feature):
+    with Session() as session:
+        slug = sluggify(feature.name)
+        if session.query(AttractionFeature).filter(AttractionFeature.id != feature.id,
+                                                   AttractionFeature.slug == slug).first():
+            return f"Another attraction feature has an identical URL to this one ({slug}). \
+                Please make sure this feature's name is different from others, not including punctuation."
 
 
 @validation.AttractionEvent
@@ -735,6 +789,26 @@ def is_merch_checklist_complete(guest_merch):
                 and guest_merch.poc_region
                 and guest_merch.poc_country):
             return 'You must tell us your complete mailing address'
+        
+        elif not guest_merch.delivery_method:
+            return 'Please tell us how you will bring us your inventory'
+        elif not guest_merch.payout_method:
+            return 'Please tell us how you would like to be paid for your merch'
+        elif guest_merch.payout_method == c.PAYPAL and not guest_merch.paypal_email:
+            return 'We need your PayPal email address to pay you via PayPal'
+        elif guest_merch.payout_method == c.CHECK:
+            if not guest_merch.check_payable:
+                return 'Please include the name that should go on your check'
+            if not (
+                guest_merch.check_zip_code
+                and guest_merch.check_address1
+                and guest_merch.check_city
+                and guest_merch.check_region
+                and guest_merch.check_country
+            ):
+                return 'Please include the mailing address to send a check to.'
+        elif not guest_merch.arrival_plans:
+            return 'Please tell us your estimated arrival to Rock Island to check in your inventory'
 
 
 @validation.GuestTravelPlans
@@ -847,8 +921,7 @@ def invalid_mature_banner(app):
 @prereg_validation.ArtShowApplication
 def contact_at_con(app):
     if not app.contact_at_con:
-        return "Please tell us the best way to get a hold of you at the event, e.g., " \
-        "your mobile number or your hotel and room number."
+        return "Please tell us the best way to get a hold of you at the event, e.g., your mobile number or your hotel and room number."
 
 
 @validation.ArtShowApplication
@@ -1039,7 +1112,7 @@ def no_more_child_badges(attendee):
 
 @prereg_validation.Attendee
 def child_badge_over_13(attendee):
-    if not attendee.is_new and attendee.badge_status not in [c.PENDING_STATUS, c.AT_DOOR_PENDING_STATUS] \
+    if not attendee.is_new and attendee.badge_status != c.PENDING_STATUS \
             or attendee.unassigned_group_reg or attendee.valid_placeholder:
         return
 
@@ -1052,7 +1125,7 @@ def child_badge_over_13(attendee):
 
 @prereg_validation.Attendee
 def attendee_badge_under_13(attendee):
-    if not attendee.is_new and attendee.badge_status not in [c.PENDING_STATUS, c.AT_DOOR_PENDING_STATUS] \
+    if not attendee.is_new and attendee.badge_status != c.PENDING_STATUS \
             or attendee.unassigned_group_reg or attendee.valid_placeholder:
         return
 
@@ -1073,7 +1146,7 @@ def age_discount_after_paid(attendee):
 
 @prereg_validation.Attendee
 def require_staff_shirt_size(attendee):
-    if attendee.gets_staff_shirt and not attendee.shirt_size_marked:
+    if attendee.gets_staff_shirt and not attendee.shirt_size_marked and not c.STAFF_SHIRTS_OPTIONAL:
         return ('staff_shirt', "Please select a shirt size for your staff shirt.")
 
 

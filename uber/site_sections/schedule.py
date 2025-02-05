@@ -88,26 +88,6 @@ class Root:
         })
 
     @site_mappable(download=True)
-    @schedule_view
-    def schedule_tsv(self, session):
-        cherrypy.response.headers['Content-Type'] = 'text/tsv'
-        cherrypy.response.headers['Content-Disposition'] = 'attachment;filename=Schedule-{}.tsv'.format(
-            int(localized_now().timestamp()))
-
-        schedule = defaultdict(list)
-        for event in session.query(Event).order_by('start_time').all():
-            schedule[event.location_label].append(dict(event.to_dict(), **{
-                'date': event.start_time_local.strftime('%m/%d/%Y'),
-                'start_time': event.start_time_local.strftime('%I:%M:%S %p'),
-                'end_time': (event.start_time_local + timedelta(minutes=event.minutes)).strftime('%I:%M:%S %p'),
-                'description': normalize_newlines(event.description).replace('\n', ' ')
-            }))
-
-        return render('schedule/schedule.tsv', {
-            'schedule': sorted(schedule.items(), key=lambda tup: c.ORDERED_EVENT_LOCS.index(tup[1][0]['location']))
-        })
-
-    @site_mappable(download=True)
     def ical(self, session, **params):
         icalendar = ics.Calendar()
 
@@ -132,7 +112,7 @@ class Root:
                     name=event.name,
                     begin=event.start_time,
                     end=(event.start_time + timedelta(minutes=event.minutes)),
-                    description=normalize_newlines(event.description),
+                    description=normalize_newlines(event.public_description or event.description),
                     created=event.created_info.when,
                     location=event.location_label))
 
@@ -147,26 +127,6 @@ class Root:
         ical.restricted = False
 
     @csv_file
-    def csv(self, out, session):
-        out.writerow(['Session Title', 'Date', 'Time Start', 'Time End', 'Room/Location',
-                      'Schedule Track (Optional)', 'Description (Optional)', 'Allow Checkin (Optional)',
-                      'Checkin Begin (Optional)', 'Limit Spaces? (Optional)', 'Allow Waitlist (Optional)'])
-        rows = []
-        for event in session.query(Event).order_by('start_time').all():
-            rows.append([
-                event.name,
-                event.start_time_local.strftime('%m/%d/%Y'),
-                event.start_time_local.strftime('%I:%M:%S %p'),
-                (event.start_time_local + timedelta(minutes=event.minutes)).strftime('%I:%M:%S %p'),
-                event.location_label,
-                event.guidebook_track,
-                normalize_newlines(event.description).replace('\n', ' '),
-                '', '', '', ''
-            ])
-        for r in sorted(rows, key=lambda tup: tup[4]):
-            out.writerow(r)
-
-    @csv_file
     def panels(self, out, session):
         out.writerow(['Panel', 'Time', 'Duration', 'Room', 'Description', 'Panelists'])
         for event in sorted(session.query(Event).all(), key=lambda e: [e.start_time, e.location_label]):
@@ -179,7 +139,7 @@ class Root:
                     event.start_time_local.strftime('%I%p %a').lstrip('0'),
                     '{} minutes'.format(event.minutes),
                     event.location_label,
-                    event.description,
+                    event.public_description or event.description,
                     panelist_names])
 
     @schedule_view
@@ -194,7 +154,7 @@ class Root:
                 'start_unix': int(mktime(event.start_time.utctimetuple())),
                 'end_unix': int(mktime(event.end_time.utctimetuple())),
                 'duration': event.minutes,
-                'description': event.description,
+                'description': event.public_description or event.description,
                 'panelists': [panelist.attendee.full_name for panelist in event.assigned_panelists]
             }
             for event in sorted(session.query(Event).all(), key=lambda e: [e.start_time, e.location_label])
@@ -243,6 +203,7 @@ class Root:
                 if event.is_new:
                     event.name = add_panel.name
                     event.description = add_panel.description
+                    event.public_description = add_panel.public_description
                     for pa in add_panel.applicants:
                         if pa.attendee_id:
                             assigned_panelist = AssignedPanelist(attendee_id=pa.attendee.id, event_id=event.id)
@@ -351,6 +312,42 @@ class Root:
             'schedule': schedule,
             'locations': locations
         }
+    
+    @csv_file
+    def event_panel_info(self, out, session):
+        content_opts_enabled = len(c.PANEL_CONTENT_OPTS) > 1
+        rating_opts_enabled = len(c.PANEL_RATING_OPTS) > 1
+        dept_opts_enabled = len(c.PANEL_DEPT_OPTS) > 1
+
+        out.writerow([
+            'Start Time',
+            'Panel Name',
+            'Department',
+            'Panel Type',
+            'Description',
+            'Schedule Description',
+            'Content' if content_opts_enabled else 'Rating',
+            'Expected Length',
+            'Noise Level',
+            'Livestreaming OK',
+            'Recording OK',
+        ])
+
+        for app in session.query(PanelApplication).join(PanelApplication.event).order_by(Event.start_time):
+            app_presentation = app.other_presentation if app.presentation == c.OTHER else app.presentation_label
+            app_length = app.length_text if app.length == c.OTHER else app.length_label
+            app_record_label = app.livestream_label if len(c.LIVESTREAM_OPTS) > 2 else app.record_label
+
+            if not content_opts_enabled and not rating_opts_enabled:
+                content_or_rating = "N/A"
+            elif content_opts_enabled:
+                content_or_rating = " / ".join(app.granular_rating_labels)
+            else:
+                content_or_rating = app.rating_label
+
+            out.writerow([app.event.start_time_local, app.name, app.department_label if dept_opts_enabled else 'N/A',
+                          app_presentation, app.description, app.public_description, content_or_rating, app_length,
+                          app.noise_level_label, app.livestream_label, app_record_label])
 
     @schedule_view
     @csv_file
@@ -360,7 +357,7 @@ class Root:
             PanelApplication.event_id == Event.id, Event.location.in_(c.PANEL_ROOMS))
 
         for panel in panel_applications:
-            panels[panel.event.start_time][panel.event.location] = panel
+            panels[panel.event.start_time_local][panel.event.location] = panel
 
         if not panels:
             raise HTTPRedirect('../accounts/homepage?message={}', "No panels have been scheduled yet!")

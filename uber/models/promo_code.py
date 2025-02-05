@@ -134,7 +134,7 @@ c.PROMO_CODE_WORD_PARTS_OF_SPEECH = PromoCodeWord._PARTS_OF_SPEECH
 class PromoCodeGroup(MagModel):
     name = Column(UnicodeText)
     code = Column(UnicodeText, admin_only=True)
-    registered = Column(UTCDateTime, server_default=utcnow())
+    registered = Column(UTCDateTime, server_default=utcnow(), default=lambda: datetime.now(UTC))
     buyer_id = Column(UUID, ForeignKey('attendee.id', ondelete='SET NULL'), nullable=True)
     buyer = relationship(
         'Attendee', backref='promo_code_groups',
@@ -155,7 +155,7 @@ class PromoCodeGroup(MagModel):
         codes, so we use that class' generator method.
         """
         if not self.code:
-            self.code = RegistrationCode.generate_random_code(PromoCode)
+            self.code = RegistrationCode.generate_random_code(PromoCode.code)
 
     @hybrid_property
     def normalized_code(self):
@@ -315,6 +315,7 @@ class PromoCode(MagModel):
     expiration_date = Column(UTCDateTime, default=c.ESCHATON)
     uses_allowed = Column(Integer, nullable=True, default=None)
     cost = Column(Integer, nullable=True, default=None)
+    admin_notes = Column(UnicodeText)
 
     group_id = Column(UUID, ForeignKey('promo_code_group.id', ondelete='SET NULL'), nullable=True)
     group = relationship(
@@ -414,7 +415,7 @@ class PromoCode(MagModel):
 
     @property
     def valid_used_by(self):
-        return [attendee for attendee in self.used_by if attendee.is_valid]
+        return list(set([attendee for attendee in self.used_by if attendee.is_valid]))
 
     @property
     def uses_allowed_str(self):
@@ -473,7 +474,7 @@ class PromoCode(MagModel):
         self.code = self.code.strip() if self.code else ''
         if not self.code:
             # If 'code' is empty, then generate a random code
-            self.code = RegistrationCode.generate_random_code(PromoCode)
+            self.code = RegistrationCode.generate_random_code(PromoCode.code)
         else:
             # Replace multiple whitespace characters with a single space
             self.code = re.sub(r'\s+', ' ', self.code)

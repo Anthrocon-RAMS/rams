@@ -41,6 +41,23 @@
 <div class="row g-sm-3 p-0">
 {{ macros.name_form_group(attendee, label="First & Last Name", is_readonly=attendee_fields_ro, use_bs5=True) }}
 {{ macros.form_group(attendee, 'legal_name', label="Name on Photo ID", help="The name on your ID, if different from your first and last name.", is_readonly=attendee_fields_ro, use_bs5=True) }}
+  <div class="col text-start">
+    {{ macros.form_group(attendee, 'badge_printed_name', label="Badge Name", is_readonly=attendee_fields_ro, use_bs5=True) }}
+  </div>
+
+  <div class="col">
+    <label class="form-text">Bidder Number</label>
+    <div class="mb-3">
+    {% if not printable %}
+    <input type="text" class="form-control" name="bidder_num" value="{{ attendee.art_show_bidder.bidder_num }}" />
+    {% else %}
+    <span class="bidder_num">{{ attendee.art_show_bidder.bidder_num }}</span>
+    {% endif %}
+    </div>
+  </div>
+
+  <input type="hidden" name="attendee_id" value="{{ attendee.id }}" />
+  <input type="hidden" name="id" class="bidder_id" value="{{ attendee.art_show_bidder.id }}" />
 </div>
 
 {{ macros.address_form(address_model, is_readonly=attendee_fields_ro, use_bs5=True) }}
@@ -65,6 +82,11 @@
   </div>
   {% endif %}
 </div>
+{{ macros.name_form_group(attendee, label="Full Name", is_readonly=attendee_fields_ro, use_bs5=True) }}
+{{ macros.form_group(attendee, 'legal_name', label="Legal Name", is_readonly=attendee_fields_ro, use_bs5=True) }}
+</div>
+
+{{ macros.address_form(address_model, is_readonly=attendee_fields_ro, use_bs5=True) }}
 
 {% if attendee.email or not printable %}
 <div class="row g-sm-3">
@@ -118,7 +140,7 @@
 </div>
 
 <div class="row g-sm-3">
-{{ macros.form_group(attendee.art_show_bidder, 'admin_notes', label="Notes", is_readonly=printable, use_bs5=True) }}
+{{ macros.form_group(attendee.art_show_bidder, 'admin_notes', type='textarea', label="Notes", is_readonly=printable, use_bs5=True) }}
 </div>
 
 {% if printable %}

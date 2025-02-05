@@ -1,8 +1,5 @@
 <style type="text/css">
   #volunteers {
-    position: fixed;
-    right: 15px;
-    top: 15px;
     text-align: right;
     box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.075);
     z-index: 1001;
@@ -51,17 +48,7 @@
 
 <script type="text/javascript" src="../static_views/ratings.js"></script>
 
-<div id="volunteers" class="card">
-  <div class="card-body">
-    <b>Assign someone to any of these positions</b> <br/>
-    <select id="attendee">
-        <option value="">Select a volunteer</option>
-        {% for attendee in attendees %}
-            <option value="{{ attendee.id }}">{{ attendee.full_name }}</option>
-        {% endfor %}
-    </select>
-  </div>
-</div>
+
 
 <div class="table-responsive">
   <table id="jobs"></table>
@@ -69,6 +56,8 @@
 
 <script>
     $(setupShiftRatingClickHandler);
+
+
 
     var renderShift = function(shift) {
         return $id('shift_' + shift.id, '<tr></tr>')
@@ -81,7 +70,7 @@
                 ))
             .append(
                 $('<td class="text-end"></td>').append(
-                    $('<button class="btn btn-xs btn-warning">Unassign</button>').click(function() {
+                    $('<button class="btn btn-sm btn-warning">Unassign</button>').click(function() {
                         $.post('unassign', {
                             csrf_token: csrf_token,
                             id: shift.id
@@ -134,7 +123,7 @@
                     .append('<td><span class="text-nowrap">(' + job.shifts.length + '/' + job.slots + ' slots filled)</span></td>')
                     .append(
                         $('<td class="text-end"></td>').append(
-                            jobIsFull ? '' : $('<button class="btn btn-xs btn-success">Assign</button>').click(function() {
+                            jobIsFull ? '' : $('<button class="btn btn-sm btn-success">Assign</button>').click(function() {
                                 var attendee = $('#attendee').val();
                                 if (attendee) {
                                     $.post('assign', {

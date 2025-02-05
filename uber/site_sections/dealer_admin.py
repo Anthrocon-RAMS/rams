@@ -24,17 +24,27 @@ def convert_dealer_badge(session, attendee, admin_note=''):
 
     receipt = session.get_receipt_by_model(attendee)
     receipt_items = []
-    attendee.ribbon = remove_opt(attendee.ribbon_ints, c.DEALER_RIBBON)
-    attendee.badge_cost = None  # Triggers re-calculating the base badge price on save
-    session.add(attendee)
+    params = {
+        'ribbon': remove_opt(attendee.ribbon_ints, c.DEALER_RIBBON),
+        'badge_cost': None,
+    }
 
     if attendee.paid not in [c.HAS_PAID, c.NEED_NOT_PAY]:
-        receipt_item = ReceiptManager.process_receipt_credit_change(attendee, 'paid', c.NOT_PAID, receipt)
-        receipt_items += [receipt_item] if receipt_item else []
-        attendee.paid = c.NOT_PAID
-        attendee.badge_status = c.NEW_STATUS
-        session.add(attendee)
-        session.commit()
+        params['paid'] = c.NOT_PAID
+        params['badge_status'] = c.NEW_STATUS
+        params['overridden_price'] = c.get_attendee_price(attendee.registered_local)
+        attendee.can_transfer = False
+
+    receipt_items = ReceiptManager.auto_update_receipt(attendee, receipt, params)
+
+    for key, val in params.items():
+        setattr(attendee, key, val)
+
+    # Helps track whether or not the badge has been 'claimed'
+    attendee.placeholder = True
+
+    session.add(attendee)
+    session.commit()
 
     if admin_note:
         attendee.append_admin_note(admin_note)
@@ -113,6 +123,8 @@ def decline_and_convert_dealer_group(session, group, status=c.DECLINED, admin_no
         elif not delete_group:
             attendee.badge_status = c.INVALID_GROUP_STATUS
             attendee.paid = c.NOT_PAID
+        else:
+            session.delete(attendee)
 
         if delete_group:
             attendee.group = None
@@ -221,17 +233,16 @@ class Root:
 
         signnow_request = SignNowRequest(session=session, group=group)
         if not signnow_request.document:
-            raise HTTPRedirect("form?id={}&message={}").format(id, "SignNow document not found.")
+            raise HTTPRedirect("../group_admin/form?id={}&message={}".format(id, "SignNow document not found."))
 
         signnow_request.send_dealer_signing_invite()
         if signnow_request.error_message:
-            log.error(signnow_request.error_message)
-            raise HTTPRedirect("form?id={}&message={}", id,
+            raise HTTPRedirect("../group_admin/form?id={}&message={}", id,
                                f"Error sending SignNow link: {signnow_request.error_message}")
         else:
             signnow_request.document.last_emailed = datetime.now(UTC)
             session.add(signnow_request.document)
-            raise HTTPRedirect("form?id={}&message={}", id, "SignNow link sent!")
+            raise HTTPRedirect("../group_admin/form?id={}&message={}", id, "SignNow link sent!")
 
     @ajax
     def set_table_shared(self, session, id, shared_group_name, **params):
@@ -243,7 +254,7 @@ class Root:
                 group.set_shared_with_name(shared_group_name)
             except ValueError as e:
                 return {'error': str(e)}
-            
+
         group.convert_to_shared(session)
         session.commit()
 

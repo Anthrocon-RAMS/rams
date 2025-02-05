@@ -1,6 +1,7 @@
 import random
 import string
 
+from collections import defaultdict
 from pockets import classproperty
 from sqlalchemy import func, case
 from datetime import datetime
@@ -109,7 +110,6 @@ class ArtShowApplication(MagModel):
 
     @presave_adjustment
     def add_artist_id(self):
-        from uber.models import Session
         if self.status == c.APPROVED and not self.artist_id:
             self.artist_id = self.generate_artist_id(self.banner_name)
     
@@ -124,7 +124,7 @@ class ArtShowApplication(MagModel):
             # Kind of inefficient, but doing one big query for all the existing
             # codes will be faster than a separate query for each new code.
             old_codes = set(
-                s for (s,) in session.query(ArtShowApplication.artist_id).all())
+                a for tup in session.query(ArtShowApplication.artist_id, ArtShowApplication.artist_id_ad).all() for a in tup)
 
         code_candidate = self._get_code_from_name(banner_name, old_codes) \
             or self._get_code_from_name(self.artist_name, old_codes) \
@@ -155,7 +155,7 @@ class ArtShowApplication(MagModel):
         from uber.utils import RegistrationCode
         return ArtShowAgentCode(
             app_id = self.id,
-            code=RegistrationCode.generate_random_code(ArtShowAgentCode)
+            code=RegistrationCode.generate_random_code(ArtShowAgentCode.code)
             )
 
     @property
@@ -166,6 +166,10 @@ class ArtShowApplication(MagModel):
     @property
     def current_agents(self):
         return [code.attendee for code in self.valid_agent_codes if code.attendee is not None]
+
+    @property
+    def single_agent(self):
+        return self.current_agents[0] if self.current_agents else None
 
     @property
     def display_name(self):
@@ -211,6 +215,11 @@ class ArtShowApplication(MagModel):
     @hybrid_property
     def true_default_cost_cents(self):
         return self.true_default_cost * 100
+    
+    @property
+    def panels_and_tables_cost(self):
+        # Mail-in fees are applied on top of this price
+        return c.COST_PER_PANEL * (self.panels + self.panels_ad) + c.COST_PER_TABLE * (self.tables + self.tables_ad)
 
     @property
     def total_cost(self):
@@ -224,26 +233,6 @@ class ArtShowApplication(MagModel):
     @property
     def potential_cost(self):
         return self.true_default_cost or 0
-
-    def calc_app_price_change(self, **kwargs):
-        preview_app = ArtShowApplication(**self.to_dict())
-        current_cost = int(self.calc_default_cost() * 100)
-
-        if 'overridden_price' in kwargs:
-            try:
-                preview_app.overridden_price = int(kwargs['overridden_price'])
-            except TypeError:
-                preview_app.overridden_price = kwargs['overridden_price']
-        if 'panels' in kwargs:
-            preview_app.panels = int(kwargs['panels'])
-        if 'panels_ad' in kwargs:
-            preview_app.panels_ad = int(kwargs['panels_ad'])
-        if 'tables' in kwargs:
-            preview_app.tables = int(kwargs['tables'])
-        if 'tables_ad' in kwargs:
-            preview_app.tables_ad = int(kwargs['tables_ad'])
-
-        return current_cost, int(preview_app.calc_default_cost() * 100) - current_cost
 
     @property
     def email(self):
@@ -430,10 +419,10 @@ class ArtShowPiece(MagModel):
         pdf.set_font(normal_font_name, size=8)
         pdf.set_xy(242 + xplus, 90 + yplus)
         # Note: we want the prices on the PDF to always have a trailing .00
-        pdf.cell(53, 14, txt=('${:,.2f}'.format(self.opening_bid)) if self.valid_for_sale else 'N/A', ln=1)
+        pdf.cell(53, 14, txt=('${:,.2f}'.format(self.opening_bid)) if self.valid_for_sale else 'NFS', ln=1)
         pdf.set_xy(242 + xplus, 116 + yplus)
         pdf.cell(
-            53, 14, txt=('${:,.2f}'.format(self.quick_sale_price)) if self.valid_quick_sale else 'N/A', ln=1)
+            53, 14, txt=('${:,.2f}'.format(self.quick_sale_price)) if self.valid_quick_sale else 'NFS', ln=1)
 
 
 class ArtShowPayment(MagModel):
@@ -469,7 +458,7 @@ class ArtShowReceipt(MagModel):
     def subtotal(self):
         cost = 0
         for piece in self.pieces:
-            cost += piece.sale_price * 100
+            cost += piece.sale_price * 100 if piece.sale_price else 0
         return cost
 
     @property
@@ -515,6 +504,22 @@ class ArtShowBidder(MagModel):
     hotel_room_num = Column(UnicodeText)
     admin_notes = Column(UnicodeText)
     signed_up = Column(UTCDateTime, nullable=True)
+    email_won_bids = Column(Boolean, default=False)
+
+    email_model_name = 'bidder'
+
+    @presave_adjustment
+    def zfill_bidder_num(self):
+        if not self.bidder_num:
+            return
+        base_bidder_num = ArtShowBidder.strip_bidder_num(self.bidder_num)
+        self.bidder_num = self.bidder_num[:2] + str(base_bidder_num).zfill(4)
+
+    @classmethod
+    def strip_bidder_num(cls, num):
+        if not num:
+            return 0
+        return int(num[2:])
 
     @presave_adjustment
     def zfill_bidder_num(self):
@@ -535,6 +540,19 @@ class ArtShowBidder(MagModel):
     def bidder_num_stripped(cls):
         return func.cast("0" + func.substr(cls.bidder_num, 3, func.length(cls.bidder_num)), Integer)
     
+    @property
+    def email(self):
+        if self.attendee:
+            return self.attendee.email
+
+    @property
+    def won_pieces_by_gallery(self):
+        pieces_dict = defaultdict(list)
+        for piece in sorted(self.art_show_pieces, key=lambda p: p.artist_and_piece_id):
+            if piece.winning_bid and piece.status == c.SOLD:
+                pieces_dict[piece.gallery].append(piece)
+        return pieces_dict
+
     @classproperty
     def required_fields(cls):
         # Override for independent art shows to force attendee fields to be filled out
