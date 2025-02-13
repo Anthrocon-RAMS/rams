@@ -84,8 +84,12 @@
       {% if not attendee_id %}
       {% include 'art_show_applications/new_attendee_fields.html' %}
       {% endif %}
+      {% if c.INDEPENDENT_ART_SHOW %}
+        {% include "region_opts.html" %}
+        {{ macros.address_form(app, label_prefix="Mailing", use_bs5=True) }}
+      {% endif %}
 
-      <h3 class="mt-3">Art Information</h3>
+      <h3 class="mt-3">Application Information</h3>
       {% include 'art_show_applications/art_show_form.html' %}
 
       <div class="row g-sm-3">

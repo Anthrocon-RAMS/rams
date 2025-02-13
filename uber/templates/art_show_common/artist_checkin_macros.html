@@ -178,13 +178,8 @@
     </div>
   </div>
   {% endif %}
-</div>
-{% endif %}
-{% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
-  {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=printable, use_bs5=True) }}
 {% endif %}
 <div class="row g-sm-3">
-{% endif %}
 {% if not app.check_payable and printable %}
   <div class="col-12 col-sm-6">
     <label class="form-text">Name on Check</label>

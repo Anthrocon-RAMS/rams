@@ -193,7 +193,7 @@
           {{ app.check_payable or (app.attendee.legal_first_name ~ " " ~ app.attendee.legal_last_name) }}
         {% else %}
           <input type="text" class="form-control" name="check_payable" id="check_payable" value="{{ app.check_payable }}" placeholder="{{ app.attendee.legal_first_name ~ ' ' ~ app.attendee.legal_last_name }}"/>
-          {% if not admin_area %}<p class="form-text">The name your check should be made payable to.</p>{% endif %}
+          {% if not admin_area %}<p class="form-text mb-0">The name your check should be made payable to.</p>{% endif %}
         {% endif %}
       </div>
       <div class="col-12 col-sm-6">
@@ -202,7 +202,7 @@
           {{ app.contact_at_con }}
         {% else %}
           <textarea class="form-control" name="contact_at_con" id="contact_at_con" rows="2">{{ app.contact_at_con }}</textarea>
-          {% if not admin_area %}<p class="form-text">Please tell us the best way to get a hold of you during the event.</p>{% endif %}
+          {% if not admin_area %}<p class="form-text mb-0">Please tell us the best way to get a hold of you during the event.</p>{% endif %}
         {% endif %}
       </div>
     </div>
@@ -214,17 +214,18 @@
       {{ macros.form_group(app, 'business_name', label="Mailing Business Name", placeholder=app.attendee.full_name, is_readonly=readonly) }}
     {% endif %}
     {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
-      {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=readonly, use_bs5=True) }}
+      {{ macros.address_form(app, label_prefix="Mailing", is_readonly=readonly, use_bs5=True) }}
     {% endif %}
 
     {% if not readonly %}
     <div class="row g-sm-3 mb-3">
       <div class="col-12 col-sm-6">
-          <button type="submit" class="btn btn-primary">Update Artist Information</button>
+          <button type="submit" class="btn btn-primary">Update Art Show Information</button>
       </div>
     </div>
     {% endif %}
   </form>
+  <br/>
   <h3 class="card-title">Art Show Pieces</h3>
   {% if not readonly and (not app.checked_in or admin_area) %}
   <div class="row g-sm-3 mb-3 text-center">
@@ -349,7 +350,7 @@
       </tbody>
     </table>
   </div>
-</div>
+
 
 <script type="text/javascript">
     var printCheckInForm = function () {
