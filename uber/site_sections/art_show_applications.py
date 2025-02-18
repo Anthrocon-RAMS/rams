@@ -49,7 +49,7 @@ class Root:
                 send_email.delay(
                     "artshow@rams.anthrocon.org",
                     c.ART_SHOW_NOTIFICATIONS_EMAIL,
-                    'Art Show Application Received',
+                    'Art Show {c.ART_SHOW_APP_TERM.title()} Received',
                     render('emails/art_show/reg_notification.txt',
                            {'app': app}, encoding=None), model=app.to_dict('id'))
                 session.commit()
@@ -320,7 +320,8 @@ class Root:
 
         receipt = session.get_receipt_by_model(app, create_if_none="DEFAULT")
 
-        charge_desc = "{}'s Art Show Application: {}".format(app.attendee.full_name, receipt.charge_description_list)
+        charge_desc = "{}'s Art Show {}: {}".format(app.attendee.full_name,
+                                                    c.ART_SHOW_APP_TERM.title(), receipt.charge_description_list)
         charge = TransactionRequest(receipt, app.attendee.email, charge_desc)
 
         message = charge.prepare_payment()

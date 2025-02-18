@@ -1,5 +1,5 @@
 {% extends "preregistration/preregbase.html" %}
-{% block title %}Art Show Application{% endblock %}
+{% block title %}Art Show {{ c.ART_SHOW_APP_TERM|title }}{% endblock %}
 {% block content %}
 {% if not c.INDEPENDENT_ART_SHOW %}
 <script type="text/javascript">
@@ -15,7 +15,7 @@
     });
 </script>
 {% endif %}
-<h2>{{ c.EVENT_NAME }} Art Show Application</h2>
+<h2>{{ c.EVENT_NAME }} Art Show {{ c.ART_SHOW_APP_TERM|title }}</h2>
 <div class="card">
   <div class="card-body">
     {% if c.DEV_BOX %}

@@ -89,7 +89,7 @@ def overridden_app_cost(app, new_app=None):
     if not new_app and app.overridden_price is None:
         return
     elif not new_app:
-        return ("Art Show Application (Custom Fee)", app.overridden_price * 100, 'overridden_price')
+        return (f"Art Show {c.ART_SHOW_APP_TERM.title()} (Custom Fee)", app.overridden_price * 100, 'overridden_price')
     
     if app.overridden_price is None and new_app.overridden_price is None:
         return

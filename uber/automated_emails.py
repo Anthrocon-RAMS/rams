@@ -306,7 +306,7 @@ class ArtShowAppEmailFixture(AutomatedEmailFixture):
 
 if c.ART_SHOW_ENABLED:
     ArtShowAppEmailFixture(
-        '{EVENT_NAME} Art Show Application Confirmation',
+        f'{c.EVENT_NAME} Art Show {c.ART_SHOW_APP_TERM.title()} Confirmation',
         'art_show/application.html',
         lambda a: a.status == c.UNAPPROVED,
         ident='art_show_confirm')

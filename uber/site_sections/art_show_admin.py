@@ -945,7 +945,7 @@ class Root:
             except NoResultFound:
                 return {'error': f"Could not find sale receipt or art show app {model_id}"}
             else:
-                description = f"Payment for {app.attendee.full_name}'s Art Show Application"
+                description = f"Payment for {app.attendee.full_name}'s Art Show {c.ART_SHOW_APP_TERM.title()}"
         else:
             if not amount:
                 amount = receipt.owed
