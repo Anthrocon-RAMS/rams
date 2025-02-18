@@ -8,10 +8,9 @@ from datetime import datetime
 from pytz import UTC
 
 from uber.config import c
-from uber.custom_tags import readable_join
 from uber.models import MagModel
 from uber.decorators import presave_adjustment
-from uber.models.types import Choice, DefaultColumn as Column, default_relationship as relationship, MultiChoice
+from uber.models.types import Choice, DefaultColumn as Column, default_relationship as relationship
 from uber.utils import RegistrationCode, get_static_file_path
 
 from residue import CoerceUTF8 as UnicodeText, UTCDateTime, UUID
@@ -84,8 +83,7 @@ class ArtShowApplication(MagModel):
     country = Column(UnicodeText)
     paypal_address = Column(UnicodeText)
     website = Column(UnicodeText)
-    special_requests = Column(MultiChoice(c.ARTIST_SPECIAL_REQUEST_OPTS))
-    special_requests_text = Column(UnicodeText)
+    special_needs = Column(UnicodeText)
     status = Column(Choice(c.ART_SHOW_STATUS_OPTS), default=c.UNAPPROVED)
     delivery_method = Column(Choice(c.ART_SHOW_DELIVERY_OPTS), default=c.BRINGING_IN)
     us_only = Column(Boolean, default=False)
@@ -196,19 +194,6 @@ class ArtShowApplication(MagModel):
             return "Mailing address required"
         if self.attendee.placeholder and self.attendee.badge_status != c.NOT_ATTENDING:
             return "Missing registration info"
-        
-    @property
-    def special_requests_repr(self):
-        if not self.special_requests and not self.special_requests_text:
-            return "None"
-        
-        text = ""
-        if self.special_requests:
-            text = readable_join(self.special_requests_labels)
-            if self.special_requests_text:
-                return text + f". Details/Other: {self.special_requests_text}"
-            return text
-        return f"Other: {self.special_requests_text}"
 
     @hybrid_property
     def is_valid(self):
