@@ -83,7 +83,6 @@ class ArtShowApplication(MagModel):
     country = Column(UnicodeText)
     paypal_address = Column(UnicodeText)
     website = Column(UnicodeText)
-    special_needs = Column(UnicodeText)
     status = Column(Choice(c.ART_SHOW_STATUS_OPTS), default=c.UNAPPROVED)
     delivery_method = Column(Choice(c.ART_SHOW_DELIVERY_OPTS), default=c.BRINGING_IN)
     us_only = Column(Boolean, default=False)
