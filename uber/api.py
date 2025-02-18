@@ -188,7 +188,8 @@ def _prepare_attendees_export(attendees, include_account_ids=False, include_apps
         'country',
         'paypal_address',
         'website',
-        'special_needs',
+        'special_requests',
+        'special_requests_text',
         'admin_notes',
     ]
 

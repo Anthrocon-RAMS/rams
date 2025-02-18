@@ -295,7 +295,7 @@ class Root:
                           app.tables_ad,
                           app.description,
                           app.website,
-                          app.special_needs,
+                          app.special_requests_repr,
                           app.overridden_price,
                           app.admin_notes,
                           app.display_name,

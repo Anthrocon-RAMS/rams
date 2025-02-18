@@ -1,6 +1,6 @@
 {% set readonly = app.status != c.UNAPPROVED and not admin_area %}
 <div class="row g-sm-3 new-badge mb-3">
-  <div class="col-12 col-sm-6">
+  <div class="col-12 col-sm-4">
     <label for="first_name" class="form-text">Name</label>
     {% if readonly %}
     <br/>{{ attendee.full_name }}
@@ -11,7 +11,7 @@
     </div>
     {% endif %}
   </div>
-  <div class="col-12 col-sm-6">
+  <div class="col-12 col-sm-4">
     <label for="email" class="form-text">Email Address</label>
     {% if readonly %}
     <br/>{{ attendee.email }}
@@ -20,6 +20,14 @@
     {% endif %}
   </div>
   {% if c.INDEPENDENT_ART_SHOW %}
+  <div class="col-12 col-sm-4">
+    <label for="cellphone" class="form-text">Phone #</label>
+    {% if readonly %}
+    <br/>{{ attendee.cellphone }}
+    {% else %}
+    <input type="text" name="attendee_cellphone" id="cellphone" value="{{ attendee.cellphone }}" class="form-control">
+    {% endif %}
+  </div>
   <input type="hidden" name="not_attending" value="1">
   {% else %}
   <div class="col-12">

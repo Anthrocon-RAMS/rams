@@ -42,6 +42,18 @@
       {% if not admin_area and c.ART_MAILING_FEE %}
       <p class="form-text mb-0">Mailing your art to the show incurs a fee of {{ c.ART_MAILING_FEE|format_currency }}.</p>
       {% endif %}
+      {% if not admin_area %}
+      <p class="form-text mb-0" id="agent-note" style="display:none">We will email you later for details if necessary.</p>
+      <script type="text/javascript">
+        var showOrHideAgentNote = function() {
+            setVisible($('#agent-note'), $.field('delivery_method').val() != '{{ c.BRINGING_IN }}');
+        };
+        $(function() {
+          showOrHideAgentNote();
+            $.field('delivery_method').on('change', showOrHideAgentNote);
+        });
+      </script>
+      {% endif %}
     {% endif %}
     {% if c.BY_MAIL_US_ONLY and (not readonly or app.delivery_method == c.BY_MAIL) %}
     <div id="us_only_checkbox">
@@ -154,39 +166,39 @@
 
 <div class="row g-sm-3">
   <div class="col-12 col-sm-6 mb-3">
-    <label for="panels" class="form-text">General Panels</label>
+    <label for="panels" class="form-text">General Wall Spaces</label>
     {% if app.panels and app.panels > max_panels and not admin_area %}
-      An admin has granted you {{ app.panels }} general panels. Please contact us via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
-      if you wish to change the number of panels on your {{ c.ART_SHOW_APP_TERM }}.
+      An admin has granted you {{ app.panels }} general wall spaces. Please contact us via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
+      if you wish to change the number of wall spaces on your {{ c.ART_SHOW_APP_TERM }}.
     {% elif readonly %}
     <br/>{{ app.panels }}
     {% else %}
       <select class="form-select" name="panels" id="panels">
         {{ int_options(0, max_panels, app.panels) }}
-      </select>{% if c.COST_PER_PANEL %}({{ c.COST_PER_PANEL|format_currency }} per panel){% endif %}
+      </select>{% if c.COST_PER_PANEL %}({{ c.COST_PER_PANEL|format_currency }} per wall space){% endif %}
     {% endif %}
   </div>
   <div class="col-12 col-sm-6">
-    <label for="tables" class="form-text">General Table Sections</label>
+    <label for="tables" class="form-text">General Half-Tables</label>
     {% if app.tables and app.tables > max_tables and not admin_area %}
-      An admin has granted you {{ app.tables }} general table sections. Please contact us via via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
-      if you wish to change the number of table sections on your {{ c.ART_SHOW_APP_TERM }}.
+      An admin has granted you {{ app.tables }} general half-tables. Please contact us via via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
+      if you wish to change the number of half-tables on your {{ c.ART_SHOW_APP_TERM }}.
     {% elif readonly %}
     <br/>{{ app.tables }}
     {% else %}
       <select class="form-select" name="tables" id="tables">
         {{ int_options(0, max_tables, app.tables) }}
-      </select>{% if c.COST_PER_TABLE %}({{ c.COST_PER_TABLE|format_currency }} per table section){% endif %}
+      </select>{% if c.COST_PER_TABLE %}({{ c.COST_PER_TABLE|format_currency }} per half-table){% endif %}
     {% endif %}
   </div>
 </div>
 
 <div class="row g-sm-3">
   <div class="col-12 col-sm-6 mb-3">
-    <label for="panels_ad" class="form-text">Mature Panels</label>
+    <label for="panels_ad" class="form-text">Mature Wall Spaces</label>
     {% if app.panels_ad and app.panels_ad > max_panels and not admin_area %}
-    <br/>An admin has granted you {{ app.panels_ad }} mature panels. Please contact us via via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
-      if you wish to change the number of panels on your {{ c.ART_SHOW_APP_TERM }}.
+    <br/>An admin has granted you {{ app.panels_ad }} mature wall spaces. Please contact us via via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
+      if you wish to change the number of wall spaces on your {{ c.ART_SHOW_APP_TERM }}.
     {% elif readonly %}
     <br/>{{ app.panels_ad }}
     {% else %}
@@ -198,14 +210,14 @@
     <div class="col-12 col-sm-6">
       <label for="tables" class="form-text">Mature Table Sections</label>
       {% if app.tables_ad and app.tables_ad > max_tables and not admin_area %}
-      <br/>An admin has granted you {{ app.tables_ad }} mature table sections. Please contact us via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
-        if you wish to change the number of table sections on your {{ c.ART_SHOW_APP_TERM }}.
+      <br/>An admin has granted you {{ app.tables_ad }} mature half-tables. Please contact us via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }}
+        if you wish to change the number of half-tables on your {{ c.ART_SHOW_APP_TERM }}.
       {% elif readonly %}
       <br/>{{ app.tables_ad }}
       {% else %}
         <select class="form-select" name="tables_ad" id="tables_ad">
           {{ int_options(0, max_tables, app.tables_ad) }}
-        </select>{% if c.COST_PER_TABLE %}({{ c.COST_PER_TABLE|format_currency }} per table section){% endif %}
+        </select>{% if c.COST_PER_TABLE %}({{ c.COST_PER_TABLE|format_currency }} per half-table){% endif %}
       {% endif %}
     </div>
 </div>
@@ -213,7 +225,7 @@
 {% if not readonly and not admin_area and (app.panels < max_panels or app.tables < max_tables or app.tables_ad < max_tables or app.panels_ad < max_panels) %}
 <div class="form-text text-center mb-0 mt-0">
   You may contact us via {{ c.ART_SHOW_EMAIL|email_only|email_to_link }} to request more
-  than {{ c.MAX_ART_PANELS }} panels or{% if c.MAX_ART_PANELS != c.MAX_ART_TABLES %} {{ c.MAX_ART_TABLES }}{% endif %} table sections.<br/><br/>
+  than {{ c.MAX_ART_PANELS }} wall spaces or{% if c.MAX_ART_PANELS != c.MAX_ART_TABLES %} {{ c.MAX_ART_TABLES }}{% endif %} half-tables.<br/><br/>
 </div>
 {% endif %}
 
@@ -226,25 +238,38 @@
     <textarea class="form-control" name="website" id="website">{{ app.website }}</textarea>
     {% endif %}
   </div>
-</div>
-
-<div class="row g-sm-3">
   <div class="col-12 col-sm-6 mb-3">
     <label for="contact_at_con" class="form-text">How should we contact you at-con?</label>
     {% if readonly %}
       <br/>{{ app.contact_at_con }}
     {% else %}
-      <textarea class="form-control" name="contact_at_con" id="contact_at_con" rows="4">{{ app.contact_at_con }}</textarea>
+      <textarea class="form-control" name="contact_at_con" id="contact_at_con">{{ app.contact_at_con }}</textarea>
       {% if not admin_area %}<p class="form-text mb-0">Please tell us the best way to get a hold of you during the event.</p>{% endif %}
     {% endif %}
   </div>
-  <div class="col-12 col-sm-6">
-    <label for="special_needs" class="form-text">Special Requests</label>
+</div>
+
+<div class="row g-sm-3">
+  <div class="col-12">
+    <label for="special_requests_text" class="form-text">Special Requests{% if not admin_area and not readonly %} (please provide details below){% endif %}</label>
     {% if readonly %}
-      <br/>{{ app.special_needs|default("None",true) }}
+      <br/>{{ app.special_requests_repr }}
     {% else %}
-      <textarea class="form-control" name="special_needs" id="special_needs" rows="4">{{ app.special_needs }}</textarea>
+    <div class="card card-body mb-3">
+      <div class="checkgroup">
+        <fieldset id="special_requests">
+          {% for val, label in c.ARTIST_SPECIAL_REQUEST_OPTS %}
+          <label for="special_requests-{{ val }}" class="checkbox-label">
+            <input id="special_requests-{{ val }}" name="special_requests" type="checkbox" value="{{ val }}"{% if val|string in app.special_requests %} checked="checked"{% endif %}>
+            {{ label }}
+          </label>
+          {% endfor %}
+        </fieldset>
+        <label for="special_requests_text" class="mt-3"><span class="form-text">Details/Other Requests</span></label>
+        <textarea class="form-control" id="special_requests_text" name="special_requests_text">{{ app.special_requests_text }}</textarea>
+      </div>
       {% if not admin_area %}<p class="form-text mb-0">We cannot guarantee that we will accommodate all requests.</p>{% endif %}
+    </div>
     {% endif %}
   </div>
 </div>

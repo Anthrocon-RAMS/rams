@@ -14,12 +14,12 @@ You have updated your artist information for the {{ c.EVENT_NAME }} Art Show:
     {% if app.hotel_name %}<li><strong>Room Number</strong>: {{ app.hotel_room_num }}</li>{% endif %}
     {% endif %}
     {% if app.artist_name %}<li><strong>Artist Name</strong>: {{ app.artist_name }}</li>{% endif %}
-    <li><strong>General Wall Spaces</strong>: {{ app.panels }} panels{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_panel_cost|format_currency }}) {% endif %}</li>
-    <li><strong>General Table Sections</strong>: {{ app.tables }} table sections{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_table_cost|format_currency }}) {% endif %}</li>
-    <li><strong>Mature Wall Spaces</strong>: {{ app.panels_ad }} mature panels{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_mature_panel_cost|format_currency }}) {% endif %}</li>
-    <li><strong>Mature Table Sections</strong>: {{ app.tables_ad }} mature table sections{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_mature_table_cost|format_currency }}) {% endif %}</li>
+    <li><strong>General Wall Spaces</strong>: {{ app.panels }} wall spaces{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_panel_cost|format_currency }}) {% endif %}</li>
+    <li><strong>General Half-Tables</strong>: {{ app.tables }} half-tables{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_table_cost|format_currency }}) {% endif %}</li>
+    <li><strong>Mature Wall Spaces</strong>: {{ app.panels_ad }} mature wall spaces{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_mature_panel_cost|format_currency }}) {% endif %}</li>
+    <li><strong>Mature Half-Tables</strong>: {{ app.tables_ad }} mature half-tables{% if c.ART_SHOW_HAS_FEES %} ({{ app.default_mature_table_cost|format_currency }}) {% endif %}</li>
     {% if c.ART_SHOW_HAS_FEES %}<li><strong>Total Price</strong>: {{ app.potential_cost|format_currency }}{% if app.delivery_method == c.BY_MAIL and c.ART_MAILING_FEE %} (including {{ app.default_mailing_fee_cost|format_currency }} mailing fee){% endif %}</li>{% endif %}
-    {% if app.special_needs %}<li><strong>Special Requests</strong>: {{ app.special_needs }}</li>{% endif %}
+    {% if app.special_requests or app.special_requests_text %}<li><strong>Special Requests</strong>: {{ app.special_requests_repr }}</li>{% endif %}
     {% if app.attendee.badge_status == c.NOT_ATTENDING and not c.INDEPENDENT_ART_SHOW %}<li>You will not be attending {{ c.EVENT_NAME }} and thus will
     not be issued a badge. If you expect this to change, please contact the art show staff at {{ c.ART_SHOW_EMAIL }}
     {% endif %}
@@ -27,7 +27,7 @@ You have updated your artist information for the {{ c.EVENT_NAME }} Art Show:
 </ul>
 
 <p>
-    <a href="{{ c.URL_BASE }}/art_show_applications/edit?id={{ app.id }}">Click here</a> to add more pieces or make more changes.
+    <a href="{{ c.URL_BASE }}/art_show_applications/edit?id={{ app.id }}">Click here</a> to {% if app.status == c.APPROVED %}add more pieces or {% endif %}make more changes.
 </p>
 
 </body>

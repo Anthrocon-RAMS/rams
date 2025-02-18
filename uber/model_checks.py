@@ -977,7 +977,8 @@ def too_late_now(app):
                       'tables_ad',
                       'description',
                       'website',
-                      'special_needs',
+                      'special_requests',
+                      'special_requests_text',
                       'status',
                       'delivery_method',
                       'admin_notes']:

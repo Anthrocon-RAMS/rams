@@ -6,19 +6,15 @@
     <h2>{% if c.ART_SHOW_WAITLIST and c.AFTER_ART_SHOW_WAITLIST %}You've been added to our waitlist!
       {% else %}Thanks for applying for the Art Show!{% endif %}</h2>
 
-    <p>We've received your {{ c.ART_SHOW_APP_TERM }} for the {{ c.EVENT_NAME }} Art Show. You applied for {{ app.panels }}
-    panel{{ app.panels|pluralize }} and {{ app.tables }} table{{ app.tables|pluralize }} in our general area,
-    and {{ app.panels_ad }} panel{{ app.panels_ad|pluralize }} and {{ app.tables_ad }} table{{ app.tables_ad|pluralize }}
+    <p>We've received your {{ c.ART_SHOW_APP_TERM }} for the {{ c.EVENT_NAME }} Art Show. You requested {{ app.panels }}
+    wall space{{ app.panels|pluralize }} and {{ app.tables }} half-table{{ app.tables|pluralize }} in our general area,
+    and {{ app.panels_ad }} wall space{{ app.panels_ad|pluralize }} and {{ app.tables_ad }} half-table{{ app.tables_ad|pluralize }}
     in our mature area.</p>
 
     {% if app.attendee.badge_status == c.NEW_STATUS %}
     <p>We've created a badge for you based on your information. You may complete your registration
     <a href="../preregistration/confirm?id={{ app.attendee_id }}" target="_blank">here</a> or wait and pay for your badge
     if and when your {{ c.ART_SHOW_APP_TERM }} is approved.</p>
-    {% endif %}
-
-    {% if c.ART_SHOW_WAITLIST and c.AFTER_ART_SHOW_WAITLIST %}
-    <p>You've been added to our waitlist, and we'll let you know if a spot opens up for you.</p>
     {% endif %}
 
     <h3>What Happens Next</h3>
