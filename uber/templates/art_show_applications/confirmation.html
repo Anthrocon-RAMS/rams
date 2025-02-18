@@ -3,13 +3,12 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <h2>{% if c.ART_SHOW_WAITLIST and c.AFTER_ART_SHOW_WAITLIST %}You've been added to our waitlist!
-      {% else %}Thanks for applying for the Art Show!{% endif %}</h2>
+    <h2>We've received your reservation, thanks!</h2>
 
-    <p>We've received your {{ c.ART_SHOW_APP_TERM }} for the {{ c.EVENT_NAME }} Art Show. You requested {{ app.panels }}
-    wall space{{ app.panels|pluralize }} and {{ app.tables }} half-table{{ app.tables|pluralize }} in our general area,
+    <p>You requested {{ app.panels }}
+    wall space{{ app.panels|pluralize }} and {{ app.tables }} half-table{{ app.tables|pluralize }} in the General gallery,
     and {{ app.panels_ad }} wall space{{ app.panels_ad|pluralize }} and {{ app.tables_ad }} half-table{{ app.tables_ad|pluralize }}
-    in our mature area.</p>
+    in the Mature gallery.</p>
 
     {% if app.attendee.badge_status == c.NEW_STATUS %}
     <p>We've created a badge for you based on your information. You may complete your registration
@@ -18,13 +17,13 @@
     {% endif %}
 
     <h3>What Happens Next</h3>
-    <p>You will be emailed a link to <a href="edit?id={{ app.id }}" target="_blank">manage your art show {{ c.ART_SHOW_APP_TERM }}</a>.
-    You may change your {{ c.ART_SHOW_APP_TERM }} up until it is approved, declined, or waitlisted by an admin.</p>
-
-    <p>Once your {{ c.ART_SHOW_APP_TERM }} has been reviewed, you will receive an email letting you know of your {{ c.ART_SHOW_APP_TERM }}'s
-    status.{% if c.ART_SHOW_HAS_FEES %} If your {{ c.ART_SHOW_APP_TERM }} is approved, you will also receive a link to pay for
-    the panel and table space you've requested.{% if app.attendee.badge_status != c.NOT_ATTENDING and app.attendee.paid == c.NOT_PAID %}
-    Your payment will also include your badge for the convention.{% endif %}{% endif %}</p>
+    <p>
+      We'll email you an acknowledgment with a link to <a href="edit?id={{ app.id }}" target="_blank">manage your reservation</a>.
+      {% if not c.ART_SHOW_WAITLIST or c.BEFORE_ART_SHOW_WAITLIST %}You may change your request up until March 31.
+      After that, the Art Show team will determine whether there is enough space to fulfill your request, and then{% else %}
+      The Art Show Team will determine whether there is enough space to fulfill your request, after which{% endif %}
+      we'll send you an email letting you know of your reservation's status.
+    </p>
 
     <p>If you have any questions, please email us at <a href="mailto:{{c.ART_SHOW_EMAIL}}">{{ c.ART_SHOW_EMAIL }}</a>.</p>
   </div>

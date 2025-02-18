@@ -96,13 +96,26 @@ app, c.PAGE_PATH,
         </div>
         {% endif %}
         {% if c.ARTIST_PAYOUT_METHOD_OPTS|length < 3 %}
-        <div class="col-12 col-sm-6">
+        <div class="col-12 col-sm-6 mb-3">
           <label class="col-12 form-text">Payout Method</label>
           <div class="col-12">
             <select class="form-select" name="payout_method">
               {{ options(c.ARTIST_PAYOUT_METHOD_OPTS, app.payout_method) }}
             </select>
           </div>
+          <div id="payout_details" class="row g-3 mt-0">
+            <label for="payout_method_text" class="form-label col-auto col-form-label">Payout Details:</label>
+            <div class="col"><input type="text" name="payout_method_text" id="payout_method_text" value="{{ app.payout_method_text }}" class="form-control"></div>
+          </div>
+          <script type="text/javascript">
+            var showOrHidePayoutDetails = function() {
+                setVisible($('#payout_details'), $.field('payout_method').val() == '{{ c.OTHER }}');
+            };
+            $(function() {
+              showOrHidePayoutDetails();
+                $.field('payout_method').on('change', showOrHidePayoutDetails);
+            });
+          </script>
         </div>
         {% endif %}
 

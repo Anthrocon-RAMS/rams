@@ -49,7 +49,7 @@ class Root:
                 send_email.delay(
                     "artshow@rams.anthrocon.org",
                     c.ART_SHOW_NOTIFICATIONS_EMAIL,
-                    'Art Show {c.ART_SHOW_APP_TERM.title()} Received',
+                    f'Art Show {c.ART_SHOW_APP_TERM.title()} Received',
                     render('emails/art_show/reg_notification.txt',
                            {'app': app}, encoding=None), model=app.to_dict('id'))
                 session.commit()
