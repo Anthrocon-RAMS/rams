@@ -102,7 +102,7 @@ class Root:
                     f'{c.EVENT_NAME} Art Show Information Updated',
                     render('emails/art_show/appchange_notification.html',
                            {'app': app}, encoding=None),
-                    replyto=[c.ART_SHOW_EMAIL],
+                    replyto=c.ART_SHOW_EMAIL,
                     bcc=c.ART_SHOW_BCC_EMAIL,
                     format='html',
                     model=app.to_dict('id'))
@@ -214,7 +214,7 @@ class Root:
                 f'[{app.artist_codes}] {c.EVENT_NAME} Art Show: Pieces Updated',
                 render('emails/art_show/pieces_confirmation.html',
                        {'app': app}, encoding=None), 'html',
-                replyto=[c.ART_SHOW_EMAIL],
+                replyto=c.ART_SHOW_EMAIL,
                 model=app.to_dict('id'))
             raise HTTPRedirect('..{}?id={}&message={}', params['return_to'], app.id,
                                'Confirmation email sent!')
@@ -274,7 +274,7 @@ class Root:
                 render('emails/art_show/agent_removed.html',
                        {'app': app, 'agent': old_code.attendee}, encoding=None), 'html',
                 bcc=c.ART_SHOW_BCC_EMAIL,
-                replyto=[c.ART_SHOW_EMAIL],
+                replyto=c.ART_SHOW_EMAIL,
                 model=app.to_dict('id'))
 
         session.commit()
@@ -291,7 +291,7 @@ class Root:
                     'New Agent Code for the {} Art Show'.format(c.EVENT_NAME),
                     render('emails/art_show/agent_code.html',
                         {'app': app, 'agent_code': new_code}, encoding=None), 'html',
-                    replyto=[c.ART_SHOW_EMAIL],
+                    replyto=c.ART_SHOW_EMAIL,
                     bcc=c.ART_SHOW_BCC_EMAIL,
                     model=app.to_dict('id'))
 

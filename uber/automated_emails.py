@@ -301,7 +301,7 @@ class ArtShowAppEmailFixture(AutomatedEmailFixture):
                                        lambda app: True and filter(app),
                                        ident,
                                        sender="Anthrocon Art Show <noreply@rams.anthrocon.org>",
-                                       replyto=[c.ART_SHOW_EMAIL], **kwargs)
+                                       replyto=c.ART_SHOW_EMAIL, **kwargs)
 
 
 if c.ART_SHOW_ENABLED:
