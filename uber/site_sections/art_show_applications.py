@@ -201,6 +201,7 @@ class Root:
             else:
                 session.delete(piece)
                 session.commit()
+                return {}
 
         return {'error': message}
 
