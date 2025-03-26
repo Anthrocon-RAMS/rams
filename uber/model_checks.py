@@ -1082,8 +1082,8 @@ def check_in_gallery(piece):
 
 @validation.ArtShowPiece
 def media_max_length(piece):
-    if len(piece.media) > 45:
-        return "The description of the piece's media must be 45 characters or fewer."
+    if len(piece.media) > 29:
+        return "The description of the piece's media must be 29 characters or fewer."
 
 
 # This is still required for creating an attendee from an art show app, will need to refactor later
