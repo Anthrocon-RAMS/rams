@@ -1,4 +1,4 @@
-{% set readonly = app.status != c.UNAPPROVED and not admin_area %}
+{% set readonly = not app.editable and not admin_area %}
 <div class="row g-sm-3 new-badge mb-3">
   <div class="col-12 col-sm-4">
     <label for="first_name" class="form-text">Name</label>
