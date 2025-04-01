@@ -120,7 +120,7 @@
         <td> <a href="../art_show_admin/form?id={{ piece.app.id }}" target="_blank">{{ piece.app.display_name }}</a></td>
         <td> {{ piece.gallery_label }} </td>
         <td> {{ piece.type_label }}
-          {% if piece.print_run_num and piece.type == c.PRINT %}({{ piece.print_run_num }} of {{ piece.print_run_total }}){% endif %}
+          {% if piece.type == c.PRINT %}{{ piece.print_edition_text }}{% endif %}
         </td>
         <td class="text-end"> {{ piece.sale_price|format_currency }}
         </td>

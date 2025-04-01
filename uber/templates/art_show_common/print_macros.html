@@ -24,7 +24,7 @@
     <td> {{ piece.artist_and_piece_id }} </td>
     <td> {{ piece.name|wordwrap(25, wrapstring="<br />"|safe) }} </td>
     <td> {{ piece.type_label }}
-      {% if piece.print_run_num and piece.type == c.PRINT %}({{ piece.print_run_num }} of {{ piece.print_run_total }}){% endif %}
+      {% if piece.type == c.PRINT %}{{ piece.print_edition_text }}{% endif %}
     </td>
     <td> {{ piece.media }} </td>
     <td> {{ piece.app.display_name }} </td>

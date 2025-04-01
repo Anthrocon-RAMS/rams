@@ -1014,30 +1014,25 @@ def no_duplicate_piece_names(piece):
 @validation.ArtShowPiece
 def print_run_if_print(piece):
     if piece.type == c.PRINT:
-
         # An empty print edition and run is valid.
         if not piece.print_run_total and not piece.print_run_num:
-            return
-        
-        # A piece with an edition number and no print total is valid.
-        if piece.print_run_num and not piece.print_run_total:
             return
 
         if piece.print_run_total and not piece.print_run_num:
             return "A piece with a print total must have an edition number"
 
         try:
-            num = int(piece.print_run_num)
-            total = int(piece.print_run_total)
-            if total < 0:
+            num = int(piece.print_run_num) if piece.print_run_num else None
+            total = int(piece.print_run_total) if piece.print_run_total else None
+            if total and total < 0:
                 return "Negative print runs don't make sense"
-            if num < 0:
+            if num and num < 0:
                 return "Negative edition numbers don't make sense"
-            if total < num:
+            if total and num and total < num:
                 return "A piece's edition number cannot be higher than the total print run"
         except Exception:
             return ("What you entered for the print edition or run total "
-                    f"({piece.print_run_num}/{piece.print_run_total}) isn't even a number")
+                    f"({piece.print_run_num}/{piece.print_run_total}) isn't a number")
 
 
 @validation.ArtShowPiece

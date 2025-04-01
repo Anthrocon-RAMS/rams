@@ -29,7 +29,7 @@ You have updated your pieces for the Art Show.
             <td> {{ piece.media }} </td>
             <td> {{ piece.gallery_label }} </td>
             <td> {{ piece.type_label }}
-                {% if piece.print_run_num %}({{ piece.print_run_num }} of {{ piece.print_run_total }}){% endif %}
+                {% if piece.type == c.PRINT %}{{ piece.print_edition_text }}{% endif %}
             </td>
             <td> {% if piece.valid_for_sale %}
                 Opening Bid: {{ piece.opening_bid }}

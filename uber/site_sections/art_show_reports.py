@@ -329,7 +329,7 @@ class Root:
 
         for piece in session.query(ArtShowPiece):
             if piece.type == c.PRINT:
-                piece_type = "{} ({} of {})".format(piece.type_label, piece.print_run_num, piece.print_run_total)
+                piece_type = "{}{}".format(piece.type_label, piece.print_edition_text)
             else:
                 piece_type = piece.type_label
             

@@ -91,7 +91,7 @@
                 {% endfor %}
               </div>
               <div class="media mt-2">
-                <label class="form-text" for="media-{{ real_piece.id or 'new' }}">Original Media</label>
+                <label class="form-text" for="media-{{ real_piece.id or 'new' }}">Media</label>
                 <input type="text" class="form-control" name="media" value="{{ real_piece.media or '' }}" id="media-{{ real_piece.id or 'new' }}" length="29", placeholder="The exact media for this piece in a few words" required>
               </div>
               <div class="print mt-2">
@@ -312,7 +312,7 @@
         <td> {{ piece.media }} </td>
         <td> {{ piece.gallery_label }} </td>
         <td> {{ piece.type_label }}
-          {% if piece.print_run_num and piece.type == c.PRINT %}({{ piece.print_run_num }} of {{ piece.print_run_total }}){% endif %}
+          {% if piece.type == c.PRINT %}{{ piece.print_edition_text }}{% endif %}
         </td>
         <td> {% if piece.valid_for_sale %}
           Opening Bid: {{ piece.opening_bid }}

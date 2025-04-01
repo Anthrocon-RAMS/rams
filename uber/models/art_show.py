@@ -375,6 +375,16 @@ class ArtShowPiece(MagModel):
     @property
     def winning_bidder_num(self):
         return self.receipt.attendee.art_show_bidder.bidder_num
+
+    @property
+    def print_edition_text(self):
+        if self.type == c.ORIGINAL:
+            return ""
+        if self.print_run_num and self.print_run_total:
+            return f" ({self.print_run_num} of {self.print_run_total})"
+        elif self.print_run_num:
+            return f" {self.print_run_num} (Open Edition)"
+        return ""
     
     def print_bidsheet(self, pdf, sheet_num, normal_font_name, bold_font_name, set_fitted_font_size):
         xplus = yplus = 0
