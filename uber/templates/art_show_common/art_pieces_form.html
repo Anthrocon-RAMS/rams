@@ -99,9 +99,9 @@
                   Print Number
                 </label>
                 <div class="input-group">
-                  <input class="form-control" type="number" step="1" min="1" value="{{ real_piece.print_run_num or '' }}" name="print_run_num" placeholder="X" />
+                  <input class="form-control" type="number" step="1" value="{{ real_piece.print_run_num or '' }}" name="print_run_num" placeholder="X" />
                   <span class="input-group-text">OF</span>
-                  <input class="form-control" type="number" step="1" min="1" value="{{ real_piece.print_run_total or '' }}" name="print_run_total" placeholder="Y" />
+                  <input class="form-control" type="number" step="1" value="{{ real_piece.print_run_total or '' }}" name="print_run_total" placeholder="Y" />
                 </div>
               </div>
             </div>
@@ -386,9 +386,6 @@
         var form_group = $(this).parents('form').first();
 
         setVisible(form_group.find('.print').first(), type_checked && type_checked.val() == {{ c.PRINT }});
-        setVisible(form_group.find('.media').first(), type_checked && type_checked.val() == {{ c.ORIGINAL }});
-        form_group.find('input[name=print_run_num]').prop("required", type_checked.val() == {{ c.PRINT }});
-        form_group.find('input[name=print_run_total]').prop("required", type_checked.val() == {{ c.PRINT }});
         form_group.find('input[name=media]').prop("required", type_checked.val() == {{ c.ORIGINAL }});
     };
 
