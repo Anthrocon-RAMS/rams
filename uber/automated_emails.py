@@ -312,25 +312,25 @@ if c.ART_SHOW_ENABLED:
         ident='art_show_confirm')
 
     ArtShowAppEmailFixture(
-        'Your {EVENT_NAME} Art Show application has been approved',
+        f'Your {c.EVENT_NAME} Art Show {c.ART_SHOW_APP_TERM} has been approved',
         'art_show/approved.html',
         lambda a: a.status == c.APPROVED,
         ident='art_show_approved')
 
     ArtShowAppEmailFixture(
-        'Your {EVENT_NAME} Art Show application has been waitlisted',
+        f'Your {c.EVENT_NAME} Art Show {c.ART_SHOW_APP_TERM} has been waitlisted',
         'art_show/waitlisted.txt',
         lambda a: a.status == c.WAITLISTED,
         ident='art_show_waitlisted')
 
     ArtShowAppEmailFixture(
-        'Your {EVENT_NAME} Art Show application has been declined',
+        f'Your {c.EVENT_NAME} Art Show {c.ART_SHOW_APP_TERM} has been declined',
         'art_show/declined.txt',
         lambda a: a.status == c.DECLINED,
         ident='art_show_declined')
 
     ArtShowAppEmailFixture(
-        'Your {EVENT_NAME} Art Show payment has been received',
+        f'Your {c.EVENT_NAME} Art Show payment has been received',
         'art_show/payment_confirmation.txt',
         lambda a: a.status == c.APPROVED and a.amount_paid,
         ident='art_show_payment_received'
