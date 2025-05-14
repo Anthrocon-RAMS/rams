@@ -26,7 +26,7 @@
           <input type="hidden" name="app_id" value="{{ app.id }}" />
           <input type="hidden" name="return_to" value="{{ c.PAGE_PATH }}" />
           {{ csrf_token() }}
-          <div class="row g-sm-3">
+          <div class="row g-sm-3 mb-3">
             <div class="col-12 col-sm-6">
               <label for="name-{{ real_piece.id or 'new' }}" class="form-text">Piece Name</label>
               <input type="text" name="name" id="name-{{ real_piece.id or 'new' }}" value="{{ real_piece.name or '' }}" class="form-control" placeholder="The title of this piece" required maxlength="{{ c.PIECE_NAME_LENGTH }}">
@@ -48,7 +48,7 @@
           </div>
 
           <div class="for_sale">
-            <div class="row g-sm-3">
+            <div class="row g-sm-3 mb-3">
               <div class="col-12 col-sm-6">
                 <label class="form-text" for="opening_bid-{{ real_piece.id or 'new' }}">Opening Bid</label>
                 <div class="input-group">
@@ -70,7 +70,7 @@
             </div>
           </div>
 
-          <div class="row g-sm-3">
+          <div class="row g-sm-3 mb-3">
             <div class="col-12 col-sm-6">
               <label class="form-text">Gallery</label>
               <br/>
@@ -82,28 +82,38 @@
               </div>
             </div>
             <div class="col-12 col-sm-6">
-              <label class="form-text">Piece Type</label>
-              <br/>
-              <div class="btn-group" role="group">
-                {% for val, label in c.ART_PIECE_TYPE_OPTS %}
-                <input type="radio" value="{{ val }}" class="btn-check" name="type" id="type-{{ val }}-{{ real_piece.id or 'new' }}"{% if real_piece.type == val %} checked{% endif %}>
-                <label class="btn btn-outline-secondary" for="type-{{ val }}-{{ real_piece.id or 'new' }}">{{ label }}</label>
-                {% endfor %}
-              </div>
-              <div class="media mt-2">
-                <label class="form-text" for="media-{{ real_piece.id or 'new' }}">Media</label>
-                <input type="text" class="form-control" name="media" value="{{ real_piece.media or '' }}" id="media-{{ real_piece.id or 'new' }}" length="29", placeholder="The exact media for this piece in a few words" required>
-              </div>
-              <div class="print mt-2">
-                <label class="form-text">
-                  Print Number
-                </label>
-                <div class="input-group">
-                  <input class="form-control" type="number" step="1" value="{{ real_piece.print_run_num or '' }}" name="print_run_num" placeholder="X" />
-                  <span class="input-group-text">OF</span>
-                  <input class="form-control" type="number" step="1" value="{{ real_piece.print_run_total or '' }}" name="print_run_total" placeholder="Y" />
+              <div class="row g-sm-3">
+                <div class="col col-auto">
+                  <label class="form-text">Piece Type</label>
+                  <br/>
+                  <div class="btn-group" role="group">
+                    {% for val, label in c.ART_PIECE_TYPE_OPTS %}
+                    <input type="radio" value="{{ val }}" class="btn-check" name="type" id="type-{{ val }}-{{ real_piece.id or 'new' }}"{% if real_piece.type == val %} checked{% endif %}>
+                    <label class="btn btn-outline-secondary" for="type-{{ val }}-{{ real_piece.id or 'new' }}">{{ label }}</label>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div class="col print">
+                  <label class="form-text">
+                    Print Number
+                  </label>
+                  <div class="input-group">
+                    <input class="form-control" type="number" step="1" value="{{ real_piece.print_run_num or '' }}" name="print_run_num" placeholder="X" />
+                    <span class="input-group-text">OF</span>
+                    <input class="form-control" type="number" step="1" value="{{ real_piece.print_run_total or '' }}" name="print_run_total" placeholder="Y" />
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+          <div class="row g-sm-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-text" for="artist_name-{{ real_piece.id or 'new' }}">Artist Name</label>
+              <input type="text" class="form-control" name="artist_name" value="{{ real_piece.artist_name or '' }}" id="artist_name-{{ real_piece.id or 'new' }}">
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-text" for="media-{{ real_piece.id or 'new' }}">Media</label>
+              <input type="text" class="form-control" name="media" value="{{ real_piece.media or '' }}" id="media-{{ real_piece.id or 'new' }}" length="29", placeholder="The exact media for this piece in a few words" required>
             </div>
           </div>
         </div>
@@ -389,6 +399,17 @@
         form_group.find('input[name=media]').prop("required", type_checked.val() == {{ c.ORIGINAL }});
     };
 
+    var showPlaceholderArtistName = function () {
+      var gallery_selected = $(this).closest("input[type=radio][name=gallery]:checked");
+      var form_group = $(this).parents('form').first();
+
+      if (gallery_selected.val() == {{ c.MATURE }}) {
+        form_group.find('input[name=artist_name]').attr('placeholder', "{{ app.mature_display_name }}");
+      } else {
+        form_group.find('input[name=artist_name]').attr('placeholder', "{{ app.display_name }}");
+      }
+    }
+
     var disableOrEnablePrices = function() {
         var sale_checked = $(this).closest("input[type=radio][name=for_sale]:checked");
         var form_group = $(this).parents('form');
@@ -461,6 +482,7 @@
         $('input[type=radio][name=type]').on('change', showOrHidePrint);
         $('input[type=radio][name=for_sale]').on('change', disableOrEnablePrices);
         $('input[type=checkbox][name=no_quick_sale]').on('change', toggleQuickSale);
+        $('input[type=radio][name=gallery]').on('change', showPlaceholderArtistName);
         $('#art-show-piece-table form[action*=save_art_show_piece]').each(function() {
             var alertId = $(this).siblings('.alert-dismissible').first().prop('id');
             hideMessageBox(alertId);
@@ -471,6 +493,7 @@
             toggleQuickSale.call($(this).find('input[type=checkbox][name=no_quick_sale]'));
             showOrHidePrint.call($(this).find('input[type=radio][name=type]'));
             disableOrEnablePrices.call($(this).find('input[type=radio][name=for_sale]'));
+            showPlaceholderArtistName.call($(this).find('input[type=radio][name=gallery]'));
 
             var alertId = $(this).siblings('.alert-dismissible').first().prop('id');
             hideMessageBox(alertId);
