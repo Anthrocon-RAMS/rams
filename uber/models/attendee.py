@@ -519,11 +519,6 @@ class Attendee(MagModel, TakesPaymentMixin):
         if self.birthdate:
             self.age_group = self.age_group_conf['val']
 
-        for attr in ['first_name', 'last_name']:
-            value = getattr(self, attr)
-            if value.isupper() or value.islower():
-                setattr(self, attr, value.title())
-
         if self.legal_name and self.full_name == self.legal_name:
             self.legal_name = ''
 
