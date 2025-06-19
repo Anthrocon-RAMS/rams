@@ -105,77 +105,106 @@
 
   <!-- Signature Section-->
   <!-- CopyPasta of Printable Header Artist ID-->
+
+  <!-- Row 1 -->
   {% if printable %}
     <div class="row g-sm-3 p-0">
       <div class="col text-start">
-        <div class="form-text">Location(s)</div>
-        <div style="width: 4em; height: 3em;" class="text-center pt-0">{{ app.locations }}</div>
+        <label style="font-size: 0.85rem;" class="form-text">Artist Name</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.artist_name or app.attendee.full_name }}</div>
       </div>
-      {% if app.artist_id_ad %}
-        <div class="col text-center">
-          <div class="form-text">Artist Mature ID</div>
-          <span style="font-size: 1em;">{{ app.artist_id_ad }}</span>
-        </div>
-      {% endif %}
+      <div class="col text-center">
+        <label style="font-size: 0.85rem;" class="form-text">Location(s)</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.locations }}</div>
+      </div>
       <div class="col text-end">
-        <div class="form-text">Artist ID</div>
-        <span style="font-size: 1em;">{{ app.artist_id }}</span>
+        <label style="font-size: 0.85rem;" class="form-text">Banner Name</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.banner_name or app.artist_name or app.attendee.full_name }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Row 2 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col-9 col-sm-9">
+        <label style="font-size: 0.85rem;" class="form-text">Agent Notes</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.agent_notes }}</div>
+      </div>
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Artist ID</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.artist_id }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Row 3 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col text-start">
+        <label style="font-size: 0.85rem;" class="form-text">Artist Phone</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.attendee.cellphone }}</div>
+      </div>
+      <div class="col text-center">
+        <label style="font-size: 0.85rem;" class="form-text">Artist Email</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.attendee.email }}</div>
+      </div>
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Banner Name (Mature)</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.banner_name_ad or app.banner_name or app.artist_name or app.attendee.full_name }}</div>
+      </div>      
+    </div>
+  {% endif %}
+
+  <!-- Row 4 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col-9 col-sm-9">
+        <label style="font-size: 0.85rem;" class="form-text">Contact Info At-Con</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.contact_at_con }}</div>
+      </div>    
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Artist Mature ID</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.artist_id_ad or app.artist_id }}</div>
+      </div>  
+    </div>
+  {% endif %}
+
+  <!-- Row 5 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col text-start">
+        <label style="font-size: 0.85rem;" class="form-text">Artist Full Name</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.attendee.full_name }}</div>
+      </div>
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Name on Check</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.check_payable }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Row 6 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col text-start">
+        <label style="font-size: 0.85rem;" class="form-text">Mailing Street</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.address1 }}</div>
+      </div>
+      <div class="col text-center">
+        <label style="font-size: 0.85rem;" class="form-text">Mailing Street Line 2</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.address2 }}</div>
+      </div>
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Mailing City</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.city }}</div>
       </div>
     </div>
   {% endif %}
 
   {% if printable and not checkout %}
-    <strong style="font-size: 1rem;">{% include "art_show_applications/checkin_agreement.html" %}</strong>
 
-    <div class="row g-sm-3">
-      <div class="col-4 col-sm-4">
-        <div class="form-text">Artist Name</div>
-        <div class="mb-3">
-            {{ app.artist_name or app.attendee.full_name }}
-        </div>
-      </div>
-      {{ macros.name_form_group(app.attendee, label="Artist Full Name", is_readonly=printable, use_bs5=True) }}
-      {{ macros.form_group(app.attendee, 'legal_name', label="Artist Legal Name", placeholder="Name exactly as it appears on Photo ID", is_readonly=printable, use_bs5=True) }}
-      {% if app.attendee.cellphone %}
-        {{ macros.form_group(app.attendee, 'cellphone', label="Artist Phone", placeholder="A phone number we can use to contact the artist", is_readonly=printable, use_bs5=True) }}
-      {% endif %}
-    </div>
-
-    <div class="row g-sm-3">
-
-      <div class="col-4 col-sm-4">
-        <label class="form-text">Banner Name</label>
-        <div class="mb-3">
-            {{ app.banner_name or app.artist_name or app.attendee.full_name }}
-        </div>
-      </div>
-  
-      {% if app.banner_name_ad %}
-        <div class="col-4 col-sm-4">
-          <label class="form-text">Banner Name (Mature)</label>
-          <div class="mb-3">
-              {{ app.banner_name_ad }}
-          </div>
-        </div>      
-      {% endif %}
-      
-      {% if not app.check_payable %}
-        <div class="col-4 col-sm-4">
-          <label class="form-text">Name on Check</label>
-          <div class="mb-3">
-            <div class="form-control-static">
-              {{ app.attendee.legal_first_name }} {{ app.attendee.legal_last_name }}
-            </div>
-          </div>
-        </div>
-      {% else %}
-        {{ macros.form_group(app, 'check_payable', label="Name on Check", placeholder=app.attendee.legal_first_name ~ " " ~ app.attendee.legal_last_name, is_readonly=printable, use_bs5=True) }}
-      {% endif %}
-    </div>
-
-    {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
-      {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "", is_readonly=printable, use_bs5=True) }}
-    {% endif %}
+    <strong style="font-size: 0.85rem;">{% include "art_show_applications/checkin_agreement.html" %}</strong>
 
     {% if app.delivery_method == c.AGENT %}
       <div class="row g-sm-3">
@@ -224,7 +253,47 @@
     {% endif %}
   {% endif %}
 
-<span class="text-center pagebreak"></span>
+  <span class="text-center pagebreak"></span>
+
+  <!-- Runner Section-->
+
+  <!-- Row 1 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col text-start">
+        <label style="font-size: 0.85rem;" class="form-text">Artist Name</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.artist_name or app.attendee.full_name }}</div>
+      </div>
+      <div class="col text-center">
+        <label style="font-size: 0.85rem;" class="form-text">Location(s)</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.locations }}</div>
+      </div>
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Banner Name</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.banner_name or app.artist_name or app.attendee.full_name }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Row 2 -->
+  {% if printable %}
+    <div class="row g-sm-3 p-0">
+      <div class="col text-start">
+        <label style="font-size: 0.85rem;" class="form-text">Piece Stats</label>
+        <div style="font-size: 1.1rem;">
+          {{ app.art_show_pieces|length }} Total | 
+          {{ app.num_pieces_gallery(c.GENERAL) }} in General
+          {% if app.num_pieces_gallery(c.MATURE) > 0 %}
+            | {{ app.num_pieces_gallery(c.MATURE) }} in Mature
+          {% endif %}
+        </div>
+      </div>
+      <div class="col text-end">
+        <label style="font-size: 0.85rem;" class="form-text">Banner Name (Mature)</label>
+        <div style="font-size: 1.1rem;" class="mb-3">{{ app.banner_name_ad or app.banner_name or app.artist_name or app.attendee.full_name }}</div>
+      </div>
+    </div>
+  {% endif %}
 
 {% if not printable %}
   <div class="row g-sm-3 p-0">
@@ -237,43 +306,9 @@
       <span style="font-size: 1em;">{{ app.artist_id }}</span>
     </div>
   </div>
-{% else %}
-  <!-- Runner Section-->
-  <!-- CopyPasta of Printable Header Artist ID-->
-  <div class="row g-sm-3 p-0">
-    <div class="col text-start">
-      <div class="form-text">Location(s)</div>
-      <div style="width: 4em; height: 3em;" class="text-center pt-0">{{ app.locations }}</div>
-    </div>
-  </div>
 {% endif %}
 
-{% if printable %}
-  <div class="row g-sm-3">
-      <div class="col-4 col-sm-4">
-        <div class="form-text">Artist Name</div>
-        <div class="mb-3">
-            {{ app.artist_name or app.attendee.full_name }}
-        </div>
-      </div>
-
-      <div class="col-4 col-sm-4">
-        <label class="form-text">Banner Name</label>
-        <div class="mb-3">
-            {{ app.banner_name or app.artist_name or app.attendee.full_name }}
-        </div>
-      </div>
-  
-      {% if app.banner_name_ad %}
-        <div class="col-4 col-sm-4">
-          <label class="form-text">Banner Name (Mature)</label>
-          <div class="mb-3">
-              {{ app.banner_name_ad }}
-          </div>
-        </div>      
-      {% endif %}
-  </div>
-{% else %}
+{% if not printable %}
   <div class="row g-sm-3">
     {{ macros.form_group(app, 'artist_name', label="Artist Name", help="The name the artist wants to use with their artwork, if different from their first and last name.", placeholder=app.attendee.full_name, is_readonly=printable, use_bs5=True) }}
     {{ macros.form_group(app, 'banner_name', label="Banner Name", help="The name displayed with their art.", placeholder=app.artist_name or app.attendee.full_name, is_readonly=printable, use_bs5=True) }}
@@ -313,33 +348,6 @@
       {% endif %}
     {% endif %}
   </div>
-
-  <div class="row g-sm-3">
-    <div class="col">
-      <label class="form-text">Artist Type</label>
-      <div class="mb-3">
-        {% if printable %}
-        <div class="form-control-static">
-          {{ app.delivery_method_label }}
-        </div>
-        {% else %}
-        <select name="delivery_method" class="form-control">
-          {{ options(c.ART_SHOW_DELIVERY_OPTS, app.delivery_method) }}
-        </select>
-        {% endif %}
-      </div>
-    </div>
-    {% if not printable and app.delivery_method == c.AGENT %}
-    <div class="col">
-      <label class="form-text">Agent</label>
-      <div class="mb-3">
-        <select name="agent_id" class="form-control">
-          {{ options(all_attendees, app.single_agent.id) }}
-        </select>
-      </div>
-    </div>
-    {% endif %}
-  </div>
 {% endif %}
 
 {% if not printable %}
@@ -351,30 +359,6 @@
     </div>
   </div>
 </div>
-{% else %}
-<div class="row g-sm-3 mb-3">
-  {% if app.check_in_notes %}
-  <div class="col-6">
-    <label class="form-text">Check-In Notes</label>
-    <div class="mb-3">
-      <div class="form-control-static">
-        {{ app.check_in_notes }}
-      </div>
-    </div>
-  </div>
-  {% endif %}
-  {% if app.agent_notes %}
-  <div class="col-6">
-    <label class="form-text">Agent Notes</label>
-    <div class="mb-3">
-      <div class="form-control-static">
-        {{ app.agent_notes }}
-      </div>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
 {% endif %}
 
 {% if not printable %}
@@ -425,15 +409,27 @@
     </tbody>
   </table>
 </div>
+
+{% if printable %}
+  <div class="row g-sm-3">
+    <div class="col-12 col-sm-6">
+      <label class="form-text">Checked By (Print Name)</label>
+      <div class="mb-3 mt-3">
+          ____________________________________________________________
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <label class="form-text">Initials</label>
+      <div class="mb-3 mt-3">
+          ______________________________
+      </div>
+    </div>
+  </div>
+{% endif %}
+
 {% if not printable and not app.checked_in %}<em>NOTE: All "Expected" and "Hanging" pieces will become "Hung" upon clicking "Save & Check-In"</em>
 {% elif not printable and not app.checked_out %}<em>NOTE: All "Hung" pieces will become "Return to Artist" upon clicking "Save & Check-Out"</em>{% endif %}
-  {% if printable and not checkout %}
-
-
-
-
-
-{% endif %}
 </span>
 {%- endmacro -%}
 
