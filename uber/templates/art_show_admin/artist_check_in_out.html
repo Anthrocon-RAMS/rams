@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% set admin_area=True %}
 {% import 'art_show_common/artist_checkin_macros.html' as artist_checkin_macros with context %}
+{% import 'art_show_common/artist_checkin_finalize_macros.html' as artist_checkin_finalize_macros with context %}
 {% block title %}Art Show Admin{% endblock %}
 {% block content %}
 {% include "region_opts.html" %}
@@ -50,7 +51,7 @@
     <iframe id="upload_frame" name="upload_frame" style="display:none"></iframe>
     <div id="app_modals">
       {% for app in applications -%}
-      {{ artist_checkin_macros.check_in_modal(app) }}
+      {{ artist_checkin_finalize_macros.check_in_modal(app) }}
       {%- endfor %}
     </div>
     <form role="form" method="post" id="print_form" action="print_check_in_out_form">
