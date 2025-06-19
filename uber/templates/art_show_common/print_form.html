@@ -36,7 +36,7 @@
   {% if type == "bidder" %}
     {{ bidder_signup_macros.sign_up_form(model, True) }}
   {% elif type == "artist" %}
-    {{ artist_checkin_macros.check_in_form(model, True) }}
+    {{ artist_checkin_macros.check_in_form_printable(model, True) }}
   {% endif %}
   {% endblock %}
 </div>
