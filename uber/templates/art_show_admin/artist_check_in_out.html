@@ -50,7 +50,7 @@
     <iframe id="upload_frame" name="upload_frame" style="display:none"></iframe>
     <div id="app_modals">
       {% for app in applications -%}
-      {{ artist_checkin_macros.check_in_modal(app) }}
+        {{ artist_checkin_macros.check_in_modal(app) }}
       {%- endfor %}
     </div>
     <form role="form" method="post" id="print_form" action="print_check_in_out_form">
