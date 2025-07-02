@@ -179,7 +179,39 @@
     </div>
   </div>
 
-  <strong style="font-size: 0.85rem;">{% include "art_show_applications/checkin_agreement.html" %}</strong>
+  {% if not checkout %}<strong style="font-size: 0.85rem;"><br/>{% include "art_show_applications/checkin_agreement.html" %}</strong>
+  {% else %}
+  <br/>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Gallery</th>
+          <th>Name</th>
+          <th>Min. Bid</th>
+          <th>After Closing</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for piece in app.art_show_pieces|sort(attribute='piece_id')|sort(attribute='gallery_label') %}
+        <tr class="piece-row" data-piece_id="{{ piece.piece_id }}">
+          <td data-order="{{ piece.piece_id }}"> {{ piece.artist_and_piece_id }} <input type="hidden"
+              name="piece_ids{{ app.id }}" value="{{ piece.id }}" /> </td>
+          <td data-order="{{ piece.status_label }}">{{ piece.status_label }}</td>
+          <td width="115px" data-order="{{ piece.gallery_label }}">{{ piece.gallery_label }}</td>
+          <td data-order="{{ piece.name }}"> {{ piece.name|wordwrap(25, wrapstring="<br />"|safe) }}</td>
+          <td data-order="{{ piece.opening_bid }}">{{ '$' ~ piece.opening_bid if piece.valid_for_sale else "N/A" }}</td>
+          <td data-order="{{ piece.quick_sale_price }}">{{ '$' ~ piece.quick_sale_price if piece.valid_quick_sale else
+            "N/A" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <br/>
+  {% endif %}
 
   {% if app.delivery_method == c.AGENT %}
   <div class="row g-sm-3">
@@ -227,8 +259,8 @@
     </div>
   </div>
   {% endif %}
-
-  <span class="text-center pagebreak"></span>
+{% if not checkout %}
+  <div class="pagebreak"></div>
 
   <!-- Runner Section-->
 
@@ -314,6 +346,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
   </span>
 
   {% endif %}
@@ -354,8 +387,7 @@
         {% endif %}
         <div class="row g-sm-3">
           {{ macros.name_form_group(app.attendee, label="Artist Full Name", is_readonly=printable, use_bs5=True) }}
-          {{ macros.form_group(app.attendee, 'legal_name', label="Artist Legal Name", placeholder="Name exactly as it
-          appears on Photo ID", is_readonly=printable, use_bs5=True) }}
+          {{ macros.form_group(app.attendee, 'legal_name', label="Artist Legal Name", placeholder="Name exactly as it appears on Photo ID", is_readonly=printable, use_bs5=True) }}
           {% if app.attendee.cellphone %}
           {{ macros.form_group(app.attendee, 'cellphone', label="Artist Phone", placeholder="A phone number we can use to
           contact the artist", is_readonly=printable, use_bs5=True) }}
@@ -388,8 +420,7 @@
 
         <div class="row g-sm-3">
           {{ macros.name_form_group(app.attendee, label="Artist Full Name", is_readonly=printable, use_bs5=True) }}
-          {{ macros.form_group(app.attendee, 'legal_name', label="Artist Legal Name", placeholder="Name exactly as it
-          appears on Photo ID", is_readonly=printable, use_bs5=True) }}
+          {{ macros.form_group(app.attendee, 'legal_name', label="Artist Legal Name", placeholder="Name exactly as it appears on Photo ID", is_readonly=printable, use_bs5=True) }}
           {% if app.attendee.cellphone %}
           {{ macros.form_group(app.attendee, 'cellphone', label="Artist Phone", placeholder="A phone number we can use to
           contact the artist", is_readonly=printable, use_bs5=True) }}
@@ -500,10 +531,8 @@
               </tbody>
             </table>
           </div>
-          {% if not app.checked_in %}<em>NOTE: All "Expected" and "Hanging" pieces will become "Hung" upon clicking "Save
-            & Check-In"</em>
-          {% elif not app.checked_out %}<em>NOTE: All "Hung" pieces will become "Return to Artist" upon clicking "Save &
-            Check-Out"</em>{% endif %}
+          {% if not app.checked_in %}<em>NOTE: All "Expected" and "Hanging" pieces will become "Hung" upon clicking "Save & Check-In"</em>
+          {% elif not app.checked_out %}<em>NOTE: All "Hung" pieces will become "Return to Artist" upon clicking "Save & Check-Out"</em>{% endif %}
 
           {% endif %}
 
