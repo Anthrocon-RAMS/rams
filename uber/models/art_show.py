@@ -544,17 +544,6 @@ class ArtShowBidder(MagModel):
             return 0
         return int(num[2:])
 
-    @presave_adjustment
-    def zfill_bidder_num(self):
-        if not self.bidder_num:
-            return
-        base_bidder_num = ArtShowBidder.strip_bidder_num(self.bidder_num)
-        self.bidder_num = self.bidder_num[:2] + str(base_bidder_num).zfill(4)
-
-    @classmethod
-    def strip_bidder_num(cls, num):
-        return int(num[2:])
-
     @hybrid_property
     def bidder_num_stripped(self):
         return ArtShowBidder.strip_bidder_num(self.bidder_num) if self.bidder_num else 0
