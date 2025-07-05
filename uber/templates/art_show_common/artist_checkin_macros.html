@@ -441,6 +441,7 @@
         <div class="row g-sm-3">
           {{ macros.form_group(app, 'business_name', label="Mailing Business Name", placeholder=app.attendee.full_name,
           is_readonly=printable, use_bs5=True) }}
+          {% endif %}
           {% if app.delivery_method == c.BY_MAIL or c.INDEPENDENT_ART_SHOW %}
           {{ macros.address_form(app, label_prefix="Mailing" if app.delivery_method == c.BY_MAIL else "",
           is_readonly=printable, use_bs5=True) }}
@@ -472,6 +473,7 @@
             " " ~ app.attendee.legal_last_name, is_readonly=printable, use_bs5=True) }}
           </div>
 
+          {% if not checkout %}
           <div class="row g-sm-3 mb-3">
             <div class="col-12">
               <label class="form-text">Check-In Notes</label>
@@ -480,6 +482,7 @@
               </div>
             </div>
           </div>
+          {% endif %}
 
           <div class="d-flex gap-3">
             <span class="ms-auto">Piece Stats:</span>
@@ -531,10 +534,9 @@
               </tbody>
             </table>
           </div>
-          {% if not app.checked_in %}<em>NOTE: All "Expected" and "Hanging" pieces will become "Hung" upon clicking "Save & Check-In"</em>
-          {% elif not app.checked_out %}<em>NOTE: All "Hung" pieces will become "Return to Artist" upon clicking "Save & Check-Out"</em>{% endif %}
+          {% if not checkout %}<em>NOTE: All "Expected" and "Hanging" pieces will become "Hung" upon clicking "Save & Check-In"</em>
+          {% elif not app.checked_out %}<em>NOTE: All "Hung" pieces will become "Received" upon clicking "Save & Check-Out"</em>{% endif %}
 
-          {% endif %}
 
     </span>
   {% endif %}

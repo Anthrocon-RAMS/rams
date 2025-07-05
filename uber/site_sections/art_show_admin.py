@@ -358,7 +358,7 @@ class Root:
                         # artist checks out WHILE their pieces are actively being paid for
                         piece.status = c.PAID
                     else:
-                        piece.status = c.RETURN
+                        piece.status = c.RECEIVED
             session.commit()
 
         return {
