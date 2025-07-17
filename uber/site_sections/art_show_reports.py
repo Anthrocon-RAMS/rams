@@ -381,7 +381,7 @@ class Root:
     @csv_file
     def bidder_csv(self, out, session):
         out.writerow(["Bidder Number",
-                      "Registrant ID",
+                      "Badge Number",
                       "Full Name",
                       "Legal Name",
                       "Badge Name",
@@ -408,7 +408,7 @@ class Root:
                 address_model = bidder.attendee
 
             out.writerow([bidder.bidder_num,
-                          bidder.attendee.regfox_id,
+                          bidder.attendee.badge_num,
                           bidder.attendee.full_name,
                           bidder.attendee.legal_name,
                           bidder.attendee.badge_printed_name,
