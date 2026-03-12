@@ -1,31 +1,23 @@
 {% set readonly = not app.editable and not admin_area %}
 <div class="row g-sm-3 new-badge mb-3">
-  <div class="col-12 col-sm-4">
-    <label for="first_name" class="form-text">Name</label>
+  <div class="col-12 col-sm-6">
+    <label for="first_name" class="form-text">Name <span class="text-danger">*</span></label>
     {% if readonly %}
     <br/>{{ attendee.full_name }}
     {% else %}
     <div class="input-group">
-      <input type="text" name="attendee_first_name" id="first_name" value="{{ attendee.first_name }}" class="form-control" placeholder="First Name" autocomplete="fname">
-      <input type="text" name="attendee_last_name" id="last_name" value="{{ attendee.last_name }}" class="form-control" placeholder="Last Name" autocomplete="lname">
+      <input type="text" name="attendee_first_name" id="first_name" value="{{ attendee.first_name }}" class="form-control" placeholder="First Name" autocomplete="fname" required="required">
+      <input type="text" name="attendee_last_name" id="last_name" value="{{ attendee.last_name }}" class="form-control" placeholder="Last Name" autocomplete="lname" required="required">
     </div>
     {% endif %}
   </div>
-  <div class="col-12 col-sm-4">
-    <label for="email" class="form-text">Email Address</label>
-    {% if readonly %}
-    <br/>{{ attendee.email }}
-    {% else %}
-    <input type="email" name="attendee_email" id="email" value="{{ attendee.email }}" class="form-control" placeholder="email@example.com">
-    {% endif %}
-  </div>
   {% if c.INDEPENDENT_ART_SHOW %}
-  <div class="col-12 col-sm-4">
-    <label for="cellphone" class="form-text">Phone #</label>
+  <div class="col-12 col-sm-6">
+    <label for="cellphone" class="form-text">Phone # <span class="text-danger">*</span></label>
     {% if readonly %}
     <br/>{{ attendee.cellphone }}
     {% else %}
-    <input type="text" name="attendee_cellphone" id="cellphone" value="{{ attendee.cellphone }}" class="form-control">
+    <input type="text" name="attendee_cellphone" id="cellphone" value="{{ attendee.cellphone }}" class="form-control" required="required">
     {% endif %}
   </div>
   <input type="hidden" name="not_attending" value="1">
@@ -37,4 +29,40 @@
     </label>
   </div>
   {% endif %}
+    <div class="col-12 col-sm-6">
+      <label for="email" class="form-text">Email Address <span class="text-danger">*</span></label>
+      {% if readonly %}
+      <br/>{{ attendee.email }}
+      {% else %}
+      <input type="email" name="attendee_email" id="email" value="{{ attendee.email }}" class="form-control" placeholder="email@example.com" required="required">
+      {% endif %}
+    </div>
+    <div class="col-12 col-sm-6">
+      <label for="email" class="form-text">Confirm Email <span class="text-danger">*</span></label>
+      {% if readonly %}
+      <br/>{{ attendee.email }}
+      {% else %}
+      <input type="email" name="confirm_email" id="confirm_email" value="{{ attendee.email }}" class="form-control" placeholder="Confirm your email address" required="required">
+      {% endif %}
+    </div>
+    <script type="text/javascript">
+      $(window).on("runJavaScript", function () {
+          $('form').validate({
+              rules: {
+                  confirm_email: { equalTo: '#email' }
+              },
+              messages: {
+                  confirm_email: {
+                      equalTo: 'Please make sure the email addresses match.'
+                  }
+              },
+              onkeyup: false,
+              submitHandler: function(form, event) {
+                  // The form is already validated at this point
+                  $('form :submit').attr('disabled', true);
+                  event.target.submit();
+              }
+          });
+      });
+    </script>
 </div>

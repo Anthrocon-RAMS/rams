@@ -33,10 +33,10 @@
       <p>Unfortunately, the deadline for art show {{ c.ART_SHOW_APP_TERM }}s has passed and we are no longer accepting {{ c.ART_SHOW_APP_TERM }}s.</p>
     {% else %}
     <p>
-      Reservations submitted by March 31 are guaranteed some space.</p>
+      Deadline is March 31. Requests submitted after that date will be waitlisted in case of cancellations.</p>
 
-    <p>Please review the {{ c.EVENT_NAME }} Art Show rules
-    <a href="{{ c.ART_SHOW_RULES_URL }}" target="_blank">here</a>. Reservations received after space fills up will be waitlisted in case of cancellations.</p>
+    <p>Submitting a request does not guarantee space. Please review the {{ c.EVENT_NAME }} Art Show rules
+    <a href="{{ c.ART_SHOW_RULES_URL }}" target="_blank">here</a>.</p>
 
     <form method="post" action="index" role="form">
       <h3>Your Information</h3>
@@ -74,7 +74,7 @@
       {% endif %}
       {% if c.INDEPENDENT_ART_SHOW %}
         {% include "region_opts.html" %}
-        {{ macros.address_form(app, label_prefix="Mailing", use_bs5=True) }}
+        {{ macros.address_form(app, label_prefix="Mailing", use_bs5=True, is_required=True) }}
       {% endif %}
 
       <h3 class="mt-3">{{ c.ART_SHOW_APP_TERM|title }} Details</h3>

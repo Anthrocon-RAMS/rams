@@ -521,7 +521,7 @@
   {% if use_bs5 %}
   <div class="row g-sm-3">
     <div class="col {{ name_prefix }}address_details{{ suffix }}">
-      <label for="{{ name_prefix }}country{{ suffix }}" class="form-text">{{ label_prefix }} Country</label>
+      <label for="{{ name_prefix }}country{{ suffix }}" class="form-text">{{ label_prefix }} Country{% if is_required %} <span class="text-danger">*</span>{% endif %}</label>
       <div class="mb-3">
         {%- if is_readonly -%}
             {{ model[country_attr]|linebreaksbr }}
@@ -533,7 +533,7 @@
       </div>
     </div>
     <div class="col {{ name_prefix }}address_details{{ suffix }}">
-      <label for="{{ name_prefix }}address1{{ suffix }}" class="form-text">{{ label_prefix }} Street</label>
+      <label for="{{ name_prefix }}address1{{ suffix }}" class="form-text">{{ label_prefix }} Street & Number{% if is_required %} <span class="text-danger">*</span>{% endif %}</label>
       <div class="mb-3">
         {%- if is_readonly -%}
             {{ model[address1_attr]|linebreaksbr }}
@@ -557,7 +557,7 @@
   </div>
   <div class="row g-sm-3">
     <div class="col {{ name_prefix }}address_details{{ suffix }}">
-      <label for="{{ name_prefix }}city{{ suffix }}" class="form-text">{{ label_prefix }} City</label>
+      <label for="{{ name_prefix }}city{{ suffix }}" class="form-text">{{ label_prefix }} City{% if is_required %} <span class="text-danger">*</span>{% endif %}</label>
       <div class="mb-3">
         {%- if is_readonly -%}
           {{ model[city_attr]|linebreaksbr }}
@@ -567,7 +567,7 @@
       </div>
     </div>
     <div class="col {{ name_prefix }}address_details{{ suffix }}">
-      <label for="{{ name_prefix }}region{{ suffix }}" class="form-text">{{ label_prefix }} State/Region</label>
+      <label for="{{ name_prefix }}region{{ suffix }}" class="form-text">{{ label_prefix }} State/Region{% if is_required %} <span class="text-danger">*</span>{% endif %}</label>
       <div class="mb-3">
         {%- if is_readonly -%}
           {{ model[region_attr]|linebreaksbr }}
@@ -577,7 +577,7 @@
       </div>
     </div>
     <div class="col {{ name_prefix }}address_details{{ suffix }}">
-      <label for="{{ name_prefix }}zip_code{{ suffix }}" class="form-text">{{ label_prefix }} ZIP/Postal Code</label>
+      <label for="{{ name_prefix }}zip_code{{ suffix }}" class="form-text">{{ label_prefix }} ZIP/Postal Code{% if is_required %} <span class="text-danger">*</span>{% endif %}</label>
       <div class="mb-3">
         {%- if is_readonly -%}
           {{  model[zip_code_attr]|linebreaksbr }}

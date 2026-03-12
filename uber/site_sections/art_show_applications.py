@@ -34,11 +34,19 @@ class Root:
         if cherrypy.request.method == 'POST':
             attendee, message = session.attendee_from_art_show_app(**params)
 
-            if not c.INDEPENDENT_ART_SHOW and attendee and attendee.badge_status == c.NOT_ATTENDING \
-                    and app.delivery_method == c.BRINGING_IN:
+            if not message and not c.INDEPENDENT_ART_SHOW and attendee and \
+                    attendee.badge_status == c.NOT_ATTENDING and app.delivery_method == c.BRINGING_IN:
                 message = 'You cannot bring your own art if you are not attending.'
 
-            message = message or check(attendee) or check(app, prereg=True)
+            message = message or check(attendee)
+            if not message:
+                if not params.get('confirm_email', ''):
+                    message = 'Please confirm your email address.'
+                elif attendee.email != params.get('confirm_email', ''):
+                    message = 'Please make sure the email addresses match.'
+
+            message = message or check(app, prereg=True)
+
             if not message:
                 if c.ART_SHOW_WAITLIST and c.AFTER_ART_SHOW_WAITLIST:
                     app.status = c.WAITLISTED
@@ -387,6 +395,10 @@ class Root:
                     Please check in with a staff member at a "Bidder Sign-Up" table to complete the signup process.'
             elif missing_fields:
                 message = "Please fill out the following fields: " + readable_join(missing_fields) + "."
+            elif not params.get('confirm_email', ''):
+                message = 'Please confirm your email address.'
+            elif attendee.email != params.get('confirm_email', ''):
+                message = 'Please make sure the email addresses match.'
             elif 'phone_type' not in params:
                 message = "You must select whether your phone number is a mobile number or a landline."
             elif 'pickup_time_acknowledged' not in params:

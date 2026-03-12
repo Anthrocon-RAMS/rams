@@ -32,14 +32,15 @@ class Root:
         }
 
     def form(self, session, new_app='', message='', **params):
+        art_show_bools = ['us_only', 'photography_ok', 'share_website_social', 'requested_more_space']
         if new_app and 'attendee_id' in params:
-            app = session.art_show_application(params, ignore_csrf=True, bools=['us_only'])
+            app = session.art_show_application(params, ignore_csrf=True, bools=art_show_bools)
         else:
             if cherrypy.request.method == 'POST' and params.get('id') not in [None, '', 'None']:
                 app = session.art_show_application(params.get('id'))
                 receipt_items = ReceiptManager.auto_update_receipt(app, session.get_receipt_by_model(app), params.copy())
                 session.add_all(receipt_items)
-            app = session.art_show_application(params, bools=['us_only'])
+            app = session.art_show_application(params, bools=art_show_bools)
         attendee = None
         app_paid = 0 if new_app else app.amount_paid
 

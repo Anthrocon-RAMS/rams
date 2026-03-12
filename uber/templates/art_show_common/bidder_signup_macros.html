@@ -38,15 +38,47 @@
   {% set address_model = attendee %}
 {% endif %}
 {% set attendee_fields_ro = printable or not c.INDEPENDENT_ART_SHOW %}
-<div class="row g-sm-3 p-0">
+<div class="row g-sm-3 p-0 mb-3">
 {{ macros.name_form_group(attendee, label="First & Last Name", is_readonly=attendee_fields_ro, use_bs5=True, is_required=True) }}
 {{ macros.form_group(attendee, 'legal_name', label="Name on Photo ID", help="The name on your ID, if different from your first and last name.", is_readonly=attendee_fields_ro, use_bs5=True) }}
 </div>
 
 {% if attendee.cellphone or attendee.email or not printable %}
-<div class="row g-sm-3">
+<div class="row g-sm-3 mb-3">
   {% if attendee.email or not printable %}
-  {{ macros.form_group(attendee, 'email', label="Email Address", is_readonly=printable, use_bs5=True, is_required=True) }}
+  {{ macros.form_group(attendee, 'email', label="Email Address", id='email', is_readonly=printable, use_bs5=True, is_required=True) }}
+  {% if not attendee.email %}
+  <div class="col-12 col-sm-6">
+      <label for="email" class="form-text">Confirm Email <span class="text-danger">*</span></label>
+      {% if readonly %}
+      <br/>{{ attendee.email }}
+      {% else %}
+      <input type="email" name="confirm_email" id="confirm_email" value="{{ attendee.email }}" class="form-control" placeholder="Confirm your email address" required="required">
+      {% endif %}
+    </div>
+    <script type="text/javascript">
+      $(window).on("runJavaScript", function () {
+          $('form').validate({
+              rules: {
+                  confirm_email: { equalTo: '#email' }
+              },
+              messages: {
+                  confirm_email: {
+                      equalTo: 'Please make sure the email addresses match.'
+                  }
+              },
+              onkeyup: false,
+              submitHandler: function(form, event) {
+                  // The form is already validated at this point
+                  $('form :submit').attr('disabled', true);
+                  event.target.submit();
+              }
+          });
+      });
+    </script>
+  </div>
+  <div class="row g-sm-3 mb-3">
+  {% endif %}
   {% endif %}
   {% if attendee.cellphone or not printable %}
   {{ macros.form_group(attendee, 'cellphone', label="Phone #", is_readonly=printable, use_bs5=True, is_required=True) }}
