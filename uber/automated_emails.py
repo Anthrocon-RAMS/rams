@@ -364,7 +364,7 @@ if c.ART_SHOW_ENABLED:
             'art_show/mailing_in.html',
             lambda a: a.status == c.APPROVED and not a.amount_unpaid and a.delivery_method == c.BY_MAIL,
             when=days_between((c.ART_SHOW_REG_START, 13),
-                            (16, c.ART_SHOW_WAITLIST if c.ART_SHOW_WAITLIST else c.ART_SHOW_DEADLINE)),
+                            (16, c.ART_SHOW_DEADLINE)),
             ident='art_show_mail_in')
 
 
