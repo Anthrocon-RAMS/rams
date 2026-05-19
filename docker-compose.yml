@@ -41,8 +41,6 @@ services:
       - POSTGRES_PASSWORD=uber_db
       - POSTGRES_USER=uber_db
       - POSTGRES_DB=uber_db
-    ports:
-      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql
   redis:
