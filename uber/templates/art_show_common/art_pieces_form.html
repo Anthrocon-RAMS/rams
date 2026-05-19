@@ -277,6 +277,19 @@
       <div class="col"><button type="submit" class="btn btn-outline-secondary">Print Bid Sheets</button></div>
   </div>
   </form>
+  <form method="post" target="_blank" action="../art_show_admin/piece_labels_pdf">
+  <div class="row mb-2">
+      <div class="col text-end">
+        <label class="control-label">Piece Labels:</label>
+      </div>
+      <div class="col text-center">
+        <input type="hidden" name="id" value="{{ app.id }}" />
+        {{ csrf_token() }}
+        <p class="help-block">Prints Avery 5160 labels for all pieces (Title / By Artist / Piece ID).</p>
+      </div>
+      <div class="col"><button type="submit" class="btn btn-outline-secondary">Print Piece Labels</button></div>
+  </div>
+  </form>
   {% endif %}
   
   <div class="table-responsive">
