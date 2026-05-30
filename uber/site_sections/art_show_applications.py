@@ -132,6 +132,13 @@ class Root:
             'return_to': 'edit?id={}'.format(app.id),
         }
 
+    @requires_account(ArtShowApplication)
+    def piece_labels_pdf(self, session, id, **params):
+        app = session.art_show_application(id)
+        cherrypy.response.headers['Content-Type'] = 'application/pdf'
+        cherrypy.response.headers['Content-Disposition'] = 'inline; filename=piece_labels.pdf'
+        return app.generate_piece_labels_pdf()
+
     @ajax
     @credit_card
     @requires_account(ArtShowApplication)

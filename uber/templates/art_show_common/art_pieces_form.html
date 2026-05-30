@@ -285,7 +285,22 @@
       <div class="col text-center">
         <input type="hidden" name="id" value="{{ app.id }}" />
         {{ csrf_token() }}
-        <p class="help-block">Prints Avery 5160 labels for all pieces (Title / By Artist / Piece ID).</p>
+        <p class="help-block">Prints <a href="https://www.avery.com/templates/5160" rel="nofollow" target="_blank">Avery 5160 labels</a> for all pieces (Title / By Artist / Piece ID).</p>
+      </div>
+      <div class="col"><button type="submit" class="btn btn-outline-secondary">Print Piece Labels</button></div>
+  </div>
+  </form>
+  {% endif %}
+  {% if not admin_area and app.art_show_pieces %}
+  <form method="post" target="_blank" action="../art_show_applications/piece_labels_pdf">
+  <div class="row mb-2">
+      <div class="col text-end">
+        <label class="control-label">Piece Labels:</label>
+      </div>
+      <div class="col text-center">
+        <input type="hidden" name="id" value="{{ app.id }}" />
+        {{ csrf_token() }}
+        <p class="help-block">Prints <a href="https://www.avery.com/templates/5160" rel="nofollow" target="_blank">Avery 5160 labels</a> for all pieces (Title / By Artist / Piece ID).</p>
       </div>
       <div class="col"><button type="submit" class="btn btn-outline-secondary">Print Piece Labels</button></div>
   </div>
