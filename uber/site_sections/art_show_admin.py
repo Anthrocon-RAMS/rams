@@ -511,6 +511,7 @@ class Root:
                 pdf.set_font_size(size)
 
         pad = 5.0
+        v_pad = 16.0
         text_w = LABEL_W - 2 * pad
         line_h = LABEL_H / 3
 
@@ -525,8 +526,8 @@ class Root:
             y = TOP_MARGIN + row * LABEL_H
 
             fit_text(piece.name, text_w, 'NotoSans Bold')
-            pdf.set_xy(x + pad, y)
-            pdf.cell(text_w, line_h, txt=piece.name, align='C')
+            pdf.set_xy(x + pad, y + v_pad)
+            pdf.cell(text_w, line_h - v_pad, txt=piece.name, align='C')
 
             by_text = 'by ' + piece.app_display_name
             fit_text(by_text, text_w, 'NotoSans')
@@ -535,7 +536,7 @@ class Root:
 
             fit_text(piece.artist_and_piece_id, text_w, 'NotoSans Bold')
             pdf.set_xy(x + pad, y + 2 * line_h)
-            pdf.cell(text_w, line_h, txt=piece.artist_and_piece_id, align='C')
+            pdf.cell(text_w, line_h - v_pad, txt=piece.artist_and_piece_id, align='C')
 
         cherrypy.response.headers['Content-Type'] = 'application/pdf'
         cherrypy.response.headers['Content-Disposition'] = 'inline; filename=piece_labels.pdf'
