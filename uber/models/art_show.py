@@ -303,6 +303,61 @@ class ArtShowApplication(MagModel):
     def check_total(self):
         return round(self.total_sales - self.commission)
 
+    def generate_piece_labels_pdf(self):
+        import fpdf
+
+        pieces = sorted(self.art_show_pieces, key=lambda p: (p.gallery_label, p.piece_id))
+
+        LABEL_W = 189.0
+        LABEL_H = 72.0
+        LEFT_MARGIN = 13.5
+        TOP_MARGIN = 36.0
+        COL_GAP = 9.0
+        COLS = 3
+        PER_PAGE = 30
+
+        pdf = fpdf.FPDF(unit='pt', format='letter')
+        pdf.set_auto_page_break(False)
+        pdf.add_font('NotoSans', '', get_static_file_path('NotoSans-Regular.ttf'), uni=True)
+        pdf.add_font('NotoSans Bold', '', get_static_file_path('NotoSans-Bold.ttf'), uni=True)
+
+        def fit_text(text, max_width, font_name, start_size=10):
+            pdf.set_font(font_name, size=start_size)
+            size = start_size
+            while pdf.get_string_width(text) > max_width and size > 5:
+                size -= 0.5
+                pdf.set_font_size(size)
+
+        pad = 5.0
+        v_pad = 16.0
+        text_w = LABEL_W - 2 * pad
+        line_h = LABEL_H / 3
+
+        for i, piece in enumerate(pieces):
+            if i % PER_PAGE == 0:
+                pdf.add_page()
+
+            pos = i % PER_PAGE
+            col = pos % COLS
+            row = pos // COLS
+            x = LEFT_MARGIN + col * (LABEL_W + COL_GAP)
+            y = TOP_MARGIN + row * LABEL_H
+
+            fit_text(piece.name, text_w, 'NotoSans Bold')
+            pdf.set_xy(x + pad, y + v_pad)
+            pdf.cell(text_w, line_h - v_pad, txt=piece.name, align='C')
+
+            by_text = 'by ' + piece.app_display_name
+            fit_text(by_text, text_w, 'NotoSans')
+            pdf.set_xy(x + pad, y + line_h)
+            pdf.cell(text_w, line_h, txt=by_text, align='C')
+
+            fit_text(piece.artist_and_piece_id, text_w, 'NotoSans Bold')
+            pdf.set_xy(x + pad, y + 2 * line_h)
+            pdf.cell(text_w, line_h - v_pad, txt=piece.artist_and_piece_id, align='C')
+
+        return bytes(pdf.output())
+
 
 class ArtShowPiece(MagModel):
     app_id = Column(UUID, ForeignKey('art_show_application.id', ondelete='SET NULL'), nullable=True)

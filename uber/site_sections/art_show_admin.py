@@ -480,6 +480,12 @@ class Root:
         cherrypy.response.headers['Content-Disposition'] = 'inline; filename={}.pdf'.format(filename)
         return bytes(pdf.output())
 
+    def piece_labels_pdf(self, session, id, **params):
+        app = session.art_show_application(id)
+        cherrypy.response.headers['Content-Type'] = 'application/pdf'
+        cherrypy.response.headers['Content-Disposition'] = 'inline; filename=piece_labels.pdf'
+        return app.generate_piece_labels_pdf()
+
     def bidder_signup(self, session, message='', page=1, search_text='', order=''):
         filters = []
         search_text = search_text.strip()
