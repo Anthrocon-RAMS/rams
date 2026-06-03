@@ -338,7 +338,7 @@
               <select name="status" class="form-select">
                 {{ options(c.ART_PIECE_STATUS_OPTS, piece.status) }}
               </select>
-              <button type="submit" class="btn btn-primary status_button"><i class="fa fa-check"></i></button>
+              <button type="submit" class="btn btn-primary save_piece"><i class="fa fa-check"></i></button>
             </div>
             <br/><label class="checkbox-label optional-field">
               <input type="checkbox" name="voice_auctioned" value="1"{% if piece.voice_auctioned %} checked{% endif %} />
@@ -492,8 +492,7 @@
         modal.show();
     };
 
-    var saveArtShowPiece = function(e, $form, alertId) {
-      e.preventDefault();
+    var saveArtShowPiece = function($form, alertId) {
       $.post($form.prop('action'), $form.serialize(), function(result) {
         hideMessageBox(alertId);
         if (result.error) {
@@ -503,7 +502,6 @@
         }
         $('#piece_modals').find('.save_piece').prop('disabled', false);
       });
-      return false;
     };
 
     $(document).ready(function() {
@@ -511,30 +509,25 @@
         $('input[type=radio][name=for_sale]').on('change', disableOrEnablePrices);
         $('input[type=checkbox][name=no_quick_sale]').on('change', toggleQuickSale);
         $('input[type=radio][name=gallery]').on('change', showPlaceholderArtistName);
-        $('#art-show-piece-table form[action*=save_art_show_piece]').each(function() {
-            var alertId = $(this).siblings('.alert-dismissible').first().prop('id');
-            hideMessageBox(alertId);
-            $(this).on('submit', function(e) { saveArtShowPiece(e, $(this), alertId) });
-        });
 
         $('.piece-dialog form[action*=save_art_show_piece]').each(function() {
             toggleQuickSale.call($(this).find('input[type=checkbox][name=no_quick_sale]'));
             showOrHidePrint.call($(this).find('input[type=radio][name=type]'));
             disableOrEnablePrices.call($(this).find('input[type=radio][name=for_sale]'));
             showPlaceholderArtistName.call($(this).find('input[type=radio][name=gallery]'));
+        });
 
-            var alertId = $(this).siblings('.alert-dismissible').first().prop('id');
-            hideMessageBox(alertId);
-            $(this).on('submit', function(e) { saveArtShowPiece(e, $(this), alertId) });
+        $('#piece_modals, #art-show-piece-table').on('click', '.save_piece', function(event) {
+          event.preventDefault();
+          $(this).prop('disabled', true);
+          var alertId = $(this).closest('form').siblings('.alert-dismissible').first().prop('id');
+          hideMessageBox(alertId);
+          saveArtShowPiece($(this).closest('form'), alertId);
+          return false;
         });
 
         $('#add_piece_modal').on('click', addPieceModal);
         $('#art-show-piece-table').on('click', '.edit_piece_modal', editPieceModal);
-
-        $('#piece_modals').find('form').submit(function(e) {
-            $(this).find('.save_piece').prop('disabled', true);
-            return true;
-        });
 
         $('#art-show-piece-table').on('click', '.remove_piece', function (event) {
             event.preventDefault();
@@ -575,10 +568,6 @@
                     }
                 }
             });
-        });
-
-        $('.save_piece').on('click', function (event) {
-            $('.active').find('input').prop('checked', true); // Keyboard accessibility
         });
     });
 </script>
