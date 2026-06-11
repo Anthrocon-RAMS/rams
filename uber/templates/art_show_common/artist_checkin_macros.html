@@ -458,11 +458,9 @@
             </div>
             {% if app.delivery_method == c.AGENT %}
             <div class="col">
-              <label class="form-text">Agent</label>
+              <label class="form-text">Agent Notes</label>
               <div class="mb-3">
-                <select name="agent_id" class="form-control">
-                  {{ options(all_attendees, app.single_agent.id) }}
-                </select>
+                <textarea name="agent_notes" class="form-control" rows="4">{{ app.agent_notes }}</textarea>
               </div>
             </div>
             {% endif %}
