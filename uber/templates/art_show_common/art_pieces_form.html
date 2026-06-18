@@ -228,6 +228,16 @@
       {{ macros.address_form(app, label_prefix="Mailing", is_readonly=readonly, use_bs5=True) }}
     {% endif %}
 
+    {% if app.photography_ok %}
+    <input type="hidden" name="photography_ok" value="1" />
+    {% endif %}
+    {% if app.share_website_social %}
+    <input type="hidden" name="share_website_social" value="1" />
+    {% endif %}
+    {% if app.requested_more_space %}
+    <input type="hidden" name="requested_more_space" value="1" />
+    {% endif %}
+
     {% if not readonly %}
     <div class="row g-sm-3 mb-3">
       <div class="col-12 col-sm-6">
